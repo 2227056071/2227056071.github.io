@@ -273,7 +273,7 @@
               
                 
                 <a class="post-title-link" href="/2017/04/05/test/" itemprop="url">
-                  test
+                  浏览器网页启动 Android App
                 </a>
               
             
@@ -327,7 +327,11 @@
       
         
           
-            <h2 id="my-first-blog"><a href="#my-first-blog" class="headerlink" title="my first blog"></a>my first blog</h2>
+            <p>开发的时候碰到这样一个需求：需要从浏览器网页中启动自己的 App ，这样的代码网上一搜就是。于是我就模仿着写：<br>    <intent-filter><br>                    <data android:scheme="test"><br>                    <action android:name="android.intent.action.VIEW"></action></data></intent-filter></p>
+<pre><code>    &lt;category android:name=&quot;android.intent.category.BROWSABLE&quot;/&gt;
+    &lt;category android:name=&quot;android.intent.category.DEFAULT&quot;/&gt;
+&lt;/intent-filter&gt;
+</code></pre>
           
         
       
@@ -543,6 +547,15 @@
 
           
 
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">1</span>
+                <span class="site-state-item-name">标签</span>
+              
+            </div>
           
 
         </nav>
