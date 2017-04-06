@@ -71,7 +71,7 @@
 <link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="Android," />
+  <meta name="keywords" content="Android　网页无法启动 App," />
 
 
 
@@ -87,17 +87,17 @@
 
 
 
-<meta name="description" content="开发的时候碰到这样一个需求：需要从浏览器网页中启动自己的 App ，这样的代码网上一搜就是。于是我就模仿着写：   `&amp;lt;intent-filter&amp;gt;    &amp;lt;data android:scheme=&amp;quot;Test&amp;quot;/&amp;gt;    &amp;lt;action android:name=&amp;quot;android.intent.action.VIEW&amp;quot;/&amp;gt;">
-<meta name="keywords" content="Android">
+<meta name="description" content="开发的时候碰到这样一个需求：需要从手机浏览器网页中启动自己的 App ，这样的代码网上一搜就是。于是我就模仿着写：   &amp;lt;intent-filter&amp;gt;    &amp;lt;data android:scheme=&amp;quot;Test&amp;quot;/&amp;gt;    &amp;lt;action android:name=&amp;quot;android.intent.action.VIEW&amp;quot;/&amp;gt">
+<meta name="keywords" content="Android　网页无法启动 App">
 <meta property="og:type" content="article">
 <meta property="og:title" content="浏览器网页启动 Android App">
 <meta property="og:url" content="http://yoursite.com/2017/04/05/test/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="开发的时候碰到这样一个需求：需要从浏览器网页中启动自己的 App ，这样的代码网上一搜就是。于是我就模仿着写：   `&amp;lt;intent-filter&amp;gt;    &amp;lt;data android:scheme=&amp;quot;Test&amp;quot;/&amp;gt;    &amp;lt;action android:name=&amp;quot;android.intent.action.VIEW&amp;quot;/&amp;gt;">
-<meta property="og:updated_time" content="2017-04-05T15:24:45.646Z">
+<meta property="og:description" content="开发的时候碰到这样一个需求：需要从手机浏览器网页中启动自己的 App ，这样的代码网上一搜就是。于是我就模仿着写：   &amp;lt;intent-filter&amp;gt;    &amp;lt;data android:scheme=&amp;quot;Test&amp;quot;/&amp;gt;    &amp;lt;action android:name=&amp;quot;android.intent.action.VIEW&amp;quot;/&amp;gt">
+<meta property="og:updated_time" content="2017-04-06T14:12:33.408Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="浏览器网页启动 Android App">
-<meta name="twitter:description" content="开发的时候碰到这样一个需求：需要从浏览器网页中启动自己的 App ，这样的代码网上一搜就是。于是我就模仿着写：   `&amp;lt;intent-filter&amp;gt;    &amp;lt;data android:scheme=&amp;quot;Test&amp;quot;/&amp;gt;    &amp;lt;action android:name=&amp;quot;android.intent.action.VIEW&amp;quot;/&amp;gt;">
+<meta name="twitter:description" content="开发的时候碰到这样一个需求：需要从手机浏览器网页中启动自己的 App ，这样的代码网上一搜就是。于是我就模仿着写：   &amp;lt;intent-filter&amp;gt;    &amp;lt;data android:scheme=&amp;quot;Test&amp;quot;/&amp;gt;    &amp;lt;action android:name=&amp;quot;android.intent.action.VIEW&amp;quot;/&amp;gt">
 
 
 
@@ -322,15 +322,20 @@
       
 
       
-        <p>开发的时候碰到这样一个需求：需要从浏览器网页中启动自己的 App ，这样的代码网上一搜就是。于是我就模仿着写：  </p>
-<pre><code>`&lt;intent-filter&gt;
+        <p>开发的时候碰到这样一个需求：需要从手机浏览器网页中启动自己的 App ，这样的代码网上一搜就是。于是我就模仿着写：  </p>
+<pre><code>&lt;intent-filter&gt;
    &lt;data android:scheme=&quot;Test&quot;/&gt;
    &lt;action android:name=&quot;android.intent.action.VIEW&quot;/&gt;
 
    &lt;category android:name=&quot;android.intent.category.BROWSABLE&quot;/&gt;
    &lt;category android:name=&quot;android.intent.category.DEFAULT&quot;/&gt;
-  &lt;/intent-filter&gt;`  
-</code></pre><p>测试的网页是这样子的:  <a href="bocom://param" target="_blank" rel="external">Click</a><br>但是死活启动不了自己的 App ,在网上查了好久，代码应该没有问题啊。感觉问题可能出在 android:scheme=”Test” ，自己发现网上定义的 scheme 都是小写字母的形式。测试把 android:scheme=”Test” 改为 android:scheme=”test” 后，果然成功了。<br>又上网查一下，原来 Andoroid 官方要求 scheme 是小写字母的形式。</p>
+ &lt;/intent-filter&gt;  
+</code></pre><p>手机本地测试网页 test.html 的代码:  </p>
+<pre><code>&lt;a href=&quot;Test://param&quot;&gt;Click&lt;/a&gt;
+</code></pre><p>代码这样写应该没有问题了,可是运行发现启动不了自己的 App ,在网上查了好久。观察发现网上定义的 scheme 都是小写字母的形式，感觉问题可能出在 android:scheme=”Test” 。测试把 android:scheme=”Test” 改为 android:scheme=”test” 后，果然成功了。<br>上网查阅发现，Andoroid 官方要求 scheme 是小写字母的形式：  </p>
+<blockquote>
+<p>Note: Scheme matching in the Android framework is case-sensitive, unlike the RFC. As a result, you should always specify schemes using lowercase letters.  </p>
+</blockquote>
 
       
     </div>
@@ -360,7 +365,7 @@
       
         <div class="post-tags">
           
-            <a href="/tags/Android/" rel="tag"># Android</a>
+            <a href="/tags/Android-网页无法启动-App/" rel="tag"># Android　网页无法启动 App</a>
           
         </div>
       
