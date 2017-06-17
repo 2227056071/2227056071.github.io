@@ -95,7 +95,9 @@
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="公司的 android 客户端大小已经达到了 60 多 MB，减小客户端体积的大小已经迫在眉睫。研究一下项目代码发现 android 工程 libs 下的 so 文件已经达到了 30 多 MB (压缩前的大小)。于是决定从 so 文件方面进行体积的优化。最终的结果是客户端大小减小了 8.7 MB。下面是详细的过程。 android 工程下有 armeabi 和 armeabi-v7a 两个文件夹，">
 <meta property="og:image" content="https://raw.githubusercontent.com/2227056071/imges/master/ABI.png">
-<meta property="og:updated_time" content="2017-06-17T14:20:46.557Z">
+<meta property="og:image" content="https://raw.githubusercontent.com/2227056071/imges/master/taobaoso.png">
+<meta property="og:image" content="https://github.com/2227056071/imges/blob/master/weiXin_so.png">
+<meta property="og:updated_time" content="2017-06-17T14:53:55.446Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Android 缩小客户端体积之 so 方向">
 <meta name="twitter:description" content="公司的 android 客户端大小已经达到了 60 多 MB，减小客户端体积的大小已经迫在眉睫。研究一下项目代码发现 android 工程 libs 下的 so 文件已经达到了 30 多 MB (压缩前的大小)。于是决定从 so 文件方面进行体积的优化。最终的结果是客户端大小减小了 8.7 MB。下面是详细的过程。 android 工程下有 armeabi 和 armeabi-v7a 两个文件夹，">
@@ -339,7 +341,9 @@
 <p>android 工程下有 armeabi 和 armeabi-v7a 两个文件夹，两个文件夹下各自有 10 多个 so 文件。比较两个文件夹下的 so 文件的 hash 值，一比较吓一跳，两个文件夹下有 13 个 so 文件的 hash 值是相同的。也就是说有 13 个 so 文件是重复的。（13 个 so 文件大小总共 15 MB ）。</p>
 <p>到这里可能有人会想直接把 armeabi 或者 armeabi-v7a 下面重复的 13 个 so 文件删除了。不过这是不可行的。首先看一张图：</p>
 <p><img src="https://raw.githubusercontent.com/2227056071/imges/master/ABI.png" alt="图片"></p>
-<p>该图是说不同的 ABI 文件夹对应不同指令集的 cpu 。v5 架构 cpu 会加载 armeabi 文件夹下面的 so 文件，v7 架构的 cpu 会加载 armeabi-7a 下面的 so 文件夹。假如说 v7 架构的手机需要加载一个 a.so 文件，首先 系统会判断 armeabi-v7a 下是否存在 a.so ，如果存在直接加载 a.so ,如果找不到 so 文件的话会自动加载 armeabi 下面对应的 a.so 文件。假如 armeabi 下面也不存在 a.so 的话，程序就会闪退。</p>
+<p>该图是说不同的 ABI 文件夹对应不同指令集的 cpu 。v5 架构 cpu 会加载 armeabi 文件夹下面的 so 文件，v7 架构的 cpu 会加载 armeabi-7a 下面的 so 文件夹。假如说 v7 架构的手机需要加载一个 a.so 文件，首先 系统会判断 armeabi-v7a 文件夹是否存在。如果存在直接加载 armeabi-v7a 下面的 a.so ,如果 armeabi-v7a 下面没有 a.so 文件，app 会直接闪退。如果工程下面没有 armeabi-v7a 文件夹，系统自动加载 armeabi 下面对应的 a.so 文件，假如 armeabi 下面也不存在 a.so 的话，程序也会闪退。</p>
+<h5 id="从-armeabi-的角度来看，直接删除-armeabi-下面重复的-13-个-so-文件是不可以的，目前公司项目需要支持低配的手机，所以-armeabi-文件夹下面的-so-文件是不能被删除的。"><a href="#从-armeabi-的角度来看，直接删除-armeabi-下面重复的-13-个-so-文件是不可以的，目前公司项目需要支持低配的手机，所以-armeabi-文件夹下面的-so-文件是不能被删除的。" class="headerlink" title="从 armeabi 的角度来看，直接删除 armeabi 下面重复的 13 个 so 文件是不可以的，目前公司项目需要支持低配的手机，所以 armeabi 文件夹下面的 so 文件是不能被删除的。"></a>从 armeabi 的角度来看，直接删除 armeabi 下面重复的 13 个 so 文件是不可以的，目前公司项目需要支持低配的手机，所以 armeabi 文件夹下面的 so 文件是不能被删除的。</h5><h5 id="直接删除-armeabi-v7a-下面重复的-13-个-so-文件会导致应用闪退。把整个-armeabi-v7a-删除掉也不好，-因为项目中-armeabi-v7a-有两个-so-文件是-支持-v7-架构的，它们与-armeabi-下面对应的-so-文件-hash-值是不一样的，直接删除掉整个-armeabi-v7a-文件夹会影响-app-的性能。"><a href="#直接删除-armeabi-v7a-下面重复的-13-个-so-文件会导致应用闪退。把整个-armeabi-v7a-删除掉也不好，-因为项目中-armeabi-v7a-有两个-so-文件是-支持-v7-架构的，它们与-armeabi-下面对应的-so-文件-hash-值是不一样的，直接删除掉整个-armeabi-v7a-文件夹会影响-app-的性能。" class="headerlink" title="直接删除 armeabi-v7a 下面重复的 13 个 so 文件会导致应用闪退。把整个 armeabi-v7a 删除掉也不好， 因为项目中 armeabi-v7a 有两个 so 文件是 支持 v7 架构的，它们与 armeabi 下面对应的 so 文件 hash 值是不一样的，直接删除掉整个 armeabi-v7a 文件夹会影响 app 的性能。"></a>直接删除 armeabi-v7a 下面重复的 13 个 so 文件会导致应用闪退。把整个 armeabi-v7a 删除掉也不好， 因为项目中 armeabi-v7a 有两个 so 文件是 支持 v7 架构的，它们与 armeabi 下面对应的 so 文件 hash 值是不一样的，直接删除掉整个 armeabi-v7a 文件夹会影响 app 的性能。</h5><p>那有什么方案能既能支持老旧的手机设备又不会有性能的损耗呢？手淘和微信客户端的做法为我们提供了一种思路，如下图：<br><img src="https://raw.githubusercontent.com/2227056071/imges/master/taobaoso.png" alt=""></p>
+<p><img src="https://github.com/2227056071/imges/blob/master/weiXin_so.png" alt=""></p>
 
       
     </div>
@@ -444,8 +448,17 @@
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
 
-      <section class="site-overview sidebar-panel sidebar-panel-active">
+      <section class="site-overview sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/images/avatar.gif"
@@ -498,6 +511,22 @@
 
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-5"><a class="nav-link" href="#从-armeabi-的角度来看，直接删除-armeabi-下面重复的-13-个-so-文件是不可以的，目前公司项目需要支持低配的手机，所以-armeabi-文件夹下面的-so-文件是不能被删除的。"><span class="nav-number">1.</span> <span class="nav-text">从 armeabi 的角度来看，直接删除 armeabi 下面重复的 13 个 so 文件是不可以的，目前公司项目需要支持低配的手机，所以 armeabi 文件夹下面的 so 文件是不能被删除的。</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#直接删除-armeabi-v7a-下面重复的-13-个-so-文件会导致应用闪退。把整个-armeabi-v7a-删除掉也不好，-因为项目中-armeabi-v7a-有两个-so-文件是-支持-v7-架构的，它们与-armeabi-下面对应的-so-文件-hash-值是不一样的，直接删除掉整个-armeabi-v7a-文件夹会影响-app-的性能。"><span class="nav-number">2.</span> <span class="nav-text">直接删除 armeabi-v7a 下面重复的 13 个 so 文件会导致应用闪退。把整个 armeabi-v7a 删除掉也不好， 因为项目中 armeabi-v7a 有两个 so 文件是 支持 v7 架构的，它们与 armeabi 下面对应的 so 文件 hash 值是不一样的，直接删除掉整个 armeabi-v7a 文件夹会影响 app 的性能。</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       
