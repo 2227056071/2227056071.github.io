@@ -338,10 +338,10 @@
       
         
           
-            <p>公司的 android 客户端大小已经达到了 60 多 MB，减小客户端体积的大小已经迫在眉睫。研究一下项目代码发现 android 工程 libs 下的 so 文件已经达到了 30 多 MB (压缩前的大小)。于是决定从 so 文件方面进行体积的优化。</p>
+            <p>公司的 android 客户端大小已经达到了 60 多 MB，减小客户端体积的大小已经迫在眉睫。研究一下项目代码发现 android 工程 libs 下的 so 文件已经达到了 30 多 MB (压缩前的大小)。于是决定从 so 文件方面进行体积的优化。最终的结果是客户端大小减小了 8.7 MB。下面是详细的过程。</p>
 <p>android 工程下有 armeabi 和 armeabi-v7a 两个文件夹，两个文件夹下各自有 10 多个 so 文件。比较两个文件夹下的 so 文件的 hash 值，一比较吓一跳，两个文件夹下有 13 个 so 文件的 hash 值是相同的。也就是说有 13 个 so 文件是重复的。（13 个 so 文件大小总共 15 MB ）。</p>
 <p>到这里可能有人会想直接把 armeabi 或者 armeabi-v7a 下面重复的 13 个 so 文件删除了。不过这是不可行的。首先看一张图：</p>
-<p>![图片]<br>(<a href="https://raw.githubusercontent.com/2227056071/imges/master/ABI.png" target="_blank" rel="external">https://raw.githubusercontent.com/2227056071/imges/master/ABI.png</a>)</p>
+<p><img src="https://raw.githubusercontent.com/2227056071/imges/master/ABI.png" alt="图片"></p>
 <p>该图是说不同的 ABI 文件夹对应不同指令集的 cpu 。v5 架构 cpu 会加载 armeabi 文件夹下面的 so 文件，v7 架构的 cpu 会加载 armeabi-7a 下面的 so 文件夹。假如说 v7 架构的手机需要加载一个 a.so 文件，首先 系统会判断 armeabi-v7a 下是否存在 a.so ，如果存在直接加载 a.so ,如果找不到 so 文件的话会自动加载 armeabi 下面对应的 a.so 文件。假如 armeabi 下面也不存在 a.so 的话，程序就会闪退。</p>
 
           
