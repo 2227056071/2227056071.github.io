@@ -71,7 +71,7 @@
 <link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="so文件 客户端体积过大," />
+  <meta name="keywords" content="Hexo, NexT" />
 
 
 
@@ -87,23 +87,17 @@
 
 
 
-<meta name="description" content="公司的 android 客户端大小已经达到了 60 多 MB，减小客户端体积的大小已经迫在眉睫。研究一下项目代码发现 android 工程 libs 下的 so 文件已经达到了 30 多 MB (压缩前的大小)。于是决定从 so 文件方面进行体积的优化。最终的结果是客户端大小减小了 8.7 MB。下面是详细的过程。 android 工程下有 armeabi 和 armeabi-v7a 两个文件夹，">
-<meta name="keywords" content="so文件 客户端体积过大">
+<meta name="description" content="如何导入 okhttp 源码？okhttp 源码工程是一个 maven 构建的 java 工程，不支持 android studio 导入(自己折腾了使用了 android studio 好久发现根本编译不过去，网上有的文章说支持 android studio 导入，误人子弟。。比如[https://www.jianshu.com/p/fb6e9c99f800])。需要使用 IntelliJ ID">
+<meta name="keywords">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Android 缩小客户端体积之 so 方向">
-<meta property="og:url" content="http://yoursite.com/2017/06/17/20170617/index.html">
+<meta property="og:title" content="okhttp-源码解析">
+<meta property="og:url" content="http://yoursite.com/2018/04/30/okhttp-源码解析/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="公司的 android 客户端大小已经达到了 60 多 MB，减小客户端体积的大小已经迫在眉睫。研究一下项目代码发现 android 工程 libs 下的 so 文件已经达到了 30 多 MB (压缩前的大小)。于是决定从 so 文件方面进行体积的优化。最终的结果是客户端大小减小了 8.7 MB。下面是详细的过程。 android 工程下有 armeabi 和 armeabi-v7a 两个文件夹，">
-<meta property="og:image" content="https://raw.githubusercontent.com/2227056071/imges/master/ABI.png">
-<meta property="og:image" content="https://raw.githubusercontent.com/2227056071/imges/master/taobaoso.png">
-<meta property="og:image" content="https://raw.githubusercontent.com/2227056071/imges/master/weiXin_so.png">
-<meta property="og:image" content="https://raw.githubusercontent.com/2227056071/imges/master/taobao_v7.png">
-<meta property="og:image" content="https://raw.githubusercontent.com/2227056071/imges/master/wx_v7.jpg">
-<meta property="og:updated_time" content="2017-06-17T15:40:53.305Z">
+<meta property="og:description" content="如何导入 okhttp 源码？okhttp 源码工程是一个 maven 构建的 java 工程，不支持 android studio 导入(自己折腾了使用了 android studio 好久发现根本编译不过去，网上有的文章说支持 android studio 导入，误人子弟。。比如[https://www.jianshu.com/p/fb6e9c99f800])。需要使用 IntelliJ ID">
+<meta property="og:updated_time" content="2018-05-01T07:45:07.161Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Android 缩小客户端体积之 so 方向">
-<meta name="twitter:description" content="公司的 android 客户端大小已经达到了 60 多 MB，减小客户端体积的大小已经迫在眉睫。研究一下项目代码发现 android 工程 libs 下的 so 文件已经达到了 30 多 MB (压缩前的大小)。于是决定从 so 文件方面进行体积的优化。最终的结果是客户端大小减小了 8.7 MB。下面是详细的过程。 android 工程下有 armeabi 和 armeabi-v7a 两个文件夹，">
-<meta name="twitter:image" content="https://raw.githubusercontent.com/2227056071/imges/master/ABI.png">
+<meta name="twitter:title" content="okhttp-源码解析">
+<meta name="twitter:description" content="如何导入 okhttp 源码？okhttp 源码工程是一个 maven 构建的 java 工程，不支持 android studio 导入(自己折腾了使用了 android studio 好久发现根本编译不过去，网上有的文章说支持 android studio 导入，误人子弟。。比如[https://www.jianshu.com/p/fb6e9c99f800])。需要使用 IntelliJ ID">
 
 
 
@@ -131,13 +125,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/2017/06/17/20170617/"/>
+  <link rel="canonical" href="http://yoursite.com/2018/04/30/okhttp-源码解析/"/>
 
 
 
 
 
-  <title> Android 缩小客户端体积之 so 方向 | Hexo </title>
+  <title> okhttp-源码解析 | Hexo </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
@@ -256,7 +250,7 @@
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/06/17/20170617/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/04/30/okhttp-源码解析/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="DaQiang">
@@ -277,7 +271,7 @@
             
             
               
-                Android 缩小客户端体积之 so 方向
+                okhttp-源码解析
               
             
           </h1>
@@ -292,8 +286,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-06-17T00:00:00+08:00">
-                2017-06-17
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-04-30T20:57:58+08:00">
+                2018-04-30
               </time>
             
 
@@ -311,9 +305,9 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2017/06/17/20170617/#comments" itemprop="discussionUrl">
+                <a href="/2018/04/30/okhttp-源码解析/#comments" itemprop="discussionUrl">
                   <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2017/06/17/20170617/" itemprop="commentCount"></span>
+                        data-disqus-identifier="2018/04/30/okhttp-源码解析/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -321,7 +315,7 @@
 
           
           
-             <span id="/2017/06/17/20170617/" class="leancloud_visitors" data-flag-title="Android 缩小客户端体积之 so 方向">
+             <span id="/2018/04/30/okhttp-源码解析/" class="leancloud_visitors" data-flag-title="okhttp-源码解析">
                <span class="post-meta-divider">|</span>
                <span class="post-meta-item-icon">
                  <i class="fa fa-eye"></i>
@@ -350,23 +344,15 @@
       
 
       
-        <p>公司的 android 客户端大小已经达到了 60 多 MB，减小客户端体积的大小已经迫在眉睫。研究一下项目代码发现 android 工程 libs 下的 so 文件已经达到了 30 多 MB (压缩前的大小)。于是决定从 so 文件方面进行体积的优化。最终的结果是客户端大小减小了 8.7 MB。下面是详细的过程。</p>
-<p>android 工程下有 armeabi 和 armeabi-v7a 两个文件夹，两个文件夹下各自有 10 多个 so 文件。比较两个文件夹下的 so 文件的 hash 值，一比较吓一跳，两个文件夹下有 13 个 so 文件的 hash 值是相同的。也就是说有 13 个 so 文件是重复的。（13 个 so 文件大小总共 15 MB ）。</p>
-<p>到这里可能有人会想直接把 armeabi 或者 armeabi-v7a 下面重复的 13 个 so 文件删除了。不过这是不可行的。首先看一张图：</p>
-<p><img src="https://raw.githubusercontent.com/2227056071/imges/master/ABI.png" alt="图片"></p>
-<p>该图是说不同的 ABI 文件夹对应不同指令集的 cpu 。v5 架构 cpu 会加载 armeabi 文件夹下面的 so 文件，v7 架构的 cpu 会加载 armeabi-7a 下面的 so 文件夹。假如说 v7 架构的手机需要加载一个 a.so 文件，首先 系统会判断 armeabi-v7a 文件夹是否存在。如果存在直接加载 armeabi-v7a 下面的 a.so ,如果 armeabi-v7a 下面没有 a.so 文件，app 会直接闪退。如果工程下面没有 armeabi-v7a 文件夹，系统自动加载 armeabi 下面对应的 a.so 文件，假如 armeabi 下面也不存在 a.so 的话，程序也会闪退。</p>
-<p>从 armeabi 的角度来看，直接删除 armeabi 下面重复的 13 个 so 文件是不可以的，目前公司项目需要支持低配的手机，所以 armeabi 文件夹下面的 so 文件是不能被删除的。<br>从 armeabi-v7a 的角度来看，直接删除 armeabi-v7a 下面重复的 13 个 so 文件会导致应用闪退。把整个 armeabi-v7a 删除掉也不好， 因为项目中 armeabi-v7a 有两个 so 文件是 支持 v7 架构的，它们与 armeabi 下面对应的 so 文件 hash 值是不一样的，直接删除掉整个 armeabi-v7a 文件夹会影响 app 的性能。</p>
-<p>那有什么方案能既能支持老旧的手机设备又不会有性能的损耗呢？手淘和微信客户端的做法为我们提供了一种思路，如下图：</p>
-<p><img src="https://raw.githubusercontent.com/2227056071/imges/master/taobaoso.png" alt=""><br><img src="https://raw.githubusercontent.com/2227056071/imges/master/weiXin_so.png" alt=""><br><img src="https://raw.githubusercontent.com/2227056071/imges/master/taobao_v7.png" alt=""><br><img src="https://raw.githubusercontent.com/2227056071/imges/master/wx_v7.jpg" alt=""></p>
-<p>由上图可见微信 、手淘的客户端<strong>只保留了 armeabi 文件夹</strong>（微信和手淘 armeabi 文件夹下保留了几个  -v7a.so 文件，微信、淘宝客户端是在 app 运行的时候判断手机处理器类型决定是否加载  -v7a.so 文件）。</p>
-<p>所以最终的方案是删除掉整个 armeabi-v7a 文件夹，将对性能有影响的 v7a 架构的 so 文件放到 armeabi 文件夹下。假如有个 a.so 文件对性能有较大影响，在 armeabi 文件夹放 a.so 和 a_v7a.so 两个 so 文件。代码这样写：</p>
-<pre><code>String abi = Build.CPU_ABI;
-if (&quot;arm64-v8a&quot;.equals(abi) || &quot;armeabi-v7a&quot;.equals(abi)) {
-        System.loadLibrary(&quot;a_v7a&quot;);
-    } else {
-        System.loadLibrary(&quot;a&quot;);
-    }
-</code></pre><p>  按照上面这种方案实施后，公司 android 客户端大小缩减了 8.7 MB，心里真是很有成就感呢^-^。</p>
+        <h1 id="如何导入-okhttp-源码？"><a href="#如何导入-okhttp-源码？" class="headerlink" title="如何导入 okhttp 源码？"></a>如何导入 okhttp 源码？</h1><p>okhttp 源码工程是一个 maven 构建的 java 工程，不支持 android studio 导入(自己折腾了使用了 android studio 好久发现根本编译不过去，网上有的文章说支持 android studio 导入，误人子弟。。比如[<a href="https://www.jianshu.com/p/fb6e9c99f800])。需要使用" target="_blank" rel="external">https://www.jianshu.com/p/fb6e9c99f800])。需要使用</a> IntelliJ IDEA  导入。具体可参考：[<a href="http://lowett.com/2017/02/13/okhttp-2/]。按照该链接编译成功并运行，![图片](https://raw.githubusercontent.com/2227056071/imges/master/okhttp_1.png" target="_blank" rel="external">http://lowett.com/2017/02/13/okhttp-2/]。按照该链接编译成功并运行，![图片](https://raw.githubusercontent.com/2227056071/imges/master/okhttp_1.png</a>)</p>
+<p>现在就可以打断点进行调试了。<br>以 GetExample.java 文件里发送 get 请求为例，来分析一下 okhttp 的执行流程。<br>GetExample.java:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">Request request = new Request.Builder()</div><div class="line">    .url(url)</div><div class="line">    .build();</div><div class="line">try (Response response = client.newCall(request).execute()) &#123;</div><div class="line">  return response.body().string();</div><div class="line">&#125;</div><div class="line">```  </div><div class="line"></div><div class="line">代码按照如下顺序依次执行：execute() -&gt; getResponseWithInterceptorChain(),重点分析 getResponseWithInterceptorChain() 的代码：</div></pre></td></tr></table></figure>
+<p>Response getResponseWithInterceptorChain() throws IOException {<br>  // Build a full stack of interceptors.<br>  List<interceptor> interceptors = new ArrayList&lt;&gt;();<br>  interceptors.addAll(client.interceptors());<br>  interceptors.add(retryAndFollowUpInterceptor);<br>  interceptors.add(new BridgeInterceptor(client.cookieJar()));<br>  interceptors.add(new CacheInterceptor(client.internalCache()));<br>  interceptors.add(new ConnectInterceptor(client));<br>  if (!forWebSocket) {<br>    interceptors.addAll(client.networkInterceptors());<br>  }<br>  interceptors.add(new CallServerInterceptor(forWebSocket));</interceptor></p>
+<p>  Interceptor.Chain chain = new RealInterceptorChain(interceptors, null, null, null, 0,<br>      originalRequest, this, eventListener, client.connectTimeoutMillis(),<br>      client.readTimeoutMillis(), client.writeTimeoutMillis());</p>
+<p>  return chain.proceed(originalRequest);<br>}<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">上面的代码展示了 okhttp 核心流程：不同层次的拦截器通过责任链模式对 Request 和 Response 进行处理。</div><div class="line">如果不清楚责任链模式，可参考[责任链模式](http://www.runoob.com/design-pattern/chain-of-responsibility-pattern.html)。按照我的理解，责任链模式是一个事件传递过来以后，会有相应的对象进行处理，具体是哪个或者哪些对象处理需要根据实际情况进行判断。okhttp 里的责任链模式可见如下伪代码：</div></pre></td></tr></table></figure></p>
+<p>Response getResponseWithInterceptorChain() throws IOException {<br>  Interceptor.Chain chain = new RealInterceptorChain(interceptors, null, null, null, 0,…); // 第一次传入的是 0 代表执行第一个拦截器<br>return chain.proceed(originalRequest);<br>}<br>chain.proceed()<br>{<br>  RealInterceptorChain next = new RealInterceptorChain(index + 1);//递增执行后面拦截器的代码<br>  Interceptor interceptor = interceptors.get(index);<br>  Response response = interceptor.intercept(next);<br>}<br> interceptor.intercept(Chain chain)<br> {<br>   chain.proceed(originalRequest);<br> }<br>```</p>
+<p>拦截器是 OkHttp 的精髓。<br>client.interceptors() ，首先加入 interceptors 的是用户自定义的拦截器，比如修改请求头的拦截器等；<br>RetryAndFollowUpInterceptor 是用来重试和重定向的拦截器，在下面我们会讲到；<br>BridgeInterceptor 是用来将用户友好的请求转化为向服务器的请求，之后又把服务器的响应转化为对用户友好的响应；<br>CacheInterceptor 是缓存拦截器，若存在缓存并且可用就直接返回该缓存，否则会向服务器请求；<br>ConnectInterceptor 用来建立连接的拦截器；<br>client.networkInterceptors() 加入用户自定义的 networkInterceptors ;<br>CallServerInterceptor 是真正向服务器发出请求且得到响应的拦截器；<br>最后在聚合了这些拦截器后，利用 RealInterceptorChain 来链式调用这些拦截器。</p>
+<p>上面只是展示了大致的流程，具体还有很多细节值得研究。</p>
 
       
     </div>
@@ -394,12 +380,6 @@ if (&quot;arm64-v8a&quot;.equals(abi) || &quot;armeabi-v7a&quot;.equals(abi)) {
 
     <footer class="post-footer">
       
-        <div class="post-tags">
-          
-            <a href="/tags/so文件-客户端体积过大/" rel="tag"># so文件 客户端体积过大</a>
-          
-        </div>
-      
 
       
         
@@ -409,18 +389,14 @@ if (&quot;arm64-v8a&quot;.equals(abi) || &quot;armeabi-v7a&quot;.equals(abi)) {
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2017/09/24/test/" rel="next" title="rotateTextView">
-                <i class="fa fa-chevron-left"></i> rotateTextView
-              </a>
-            
           </div>
 
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2017/04/05/20170405_网页启动 App/" rel="prev" title="浏览器网页启动 Android App">
-                浏览器网页启动 Android App <i class="fa fa-chevron-right"></i>
+              <a href="/2018/04/08/camera-tip/" rel="prev" title="camera tip">
+                camera tip <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -475,8 +451,17 @@ if (&quot;arm64-v8a&quot;.equals(abi) || &quot;armeabi-v7a&quot;.equals(abi)) {
       
 
       
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
 
-      <section class="site-overview sidebar-panel sidebar-panel-active">
+      <section class="site-overview sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="https://raw.githubusercontent.com/2227056071/imges/master/phone.jpg"
@@ -529,6 +514,22 @@ if (&quot;arm64-v8a&quot;.equals(abi) || &quot;armeabi-v7a&quot;.equals(abi)) {
 
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#如何导入-okhttp-源码？"><span class="nav-number">1.</span> <span class="nav-text">如何导入 okhttp 源码？</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       
@@ -664,9 +665,9 @@ if (&quot;arm64-v8a&quot;.equals(abi) || &quot;armeabi-v7a&quot;.equals(abi)) {
     
       <script type="text/javascript">
         var disqus_config = function () {
-          this.page.url = 'http://yoursite.com/2017/06/17/20170617/';
-          this.page.identifier = '2017/06/17/20170617/';
-          this.page.title = 'Android 缩小客户端体积之 so 方向';
+          this.page.url = 'http://yoursite.com/2018/04/30/okhttp-源码解析/';
+          this.page.identifier = '2018/04/30/okhttp-源码解析/';
+          this.page.title = 'okhttp-源码解析';
         };
         var d = document, s = d.createElement('script');
         s.src = 'https://huqiang.disqus.com/embed.js';
