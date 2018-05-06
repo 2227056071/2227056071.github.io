@@ -349,24 +349,16 @@
       
         
           
-            <h1 id="进程回收机制"><a href="#进程回收机制" class="headerlink" title="进程回收机制"></a>进程回收机制</h1><p>当系统内存资源不足时，android 系统会杀掉不重要的进程来回收内存。根据网上的资料，android 系统中进程可分为以下几种：<br>2.1、前台进程(Foreground process)<br>场景：<br>某个进程持有一个正在与用户交互的Activity并且该Activity正处于resume的状态。<br>某个进程持有一个Service，并且该Service与用户正在交互的Activity绑定。<br>某个进程持有一个Service，并且该Service调用startForeground()方法使之位于前台运行。<br>某个进程持有一个Service，并且该Service正在执行它的某个生命周期回调方法，比如onCreate()、 onStart()或onDestroy()。<br>某个进程持有一个BroadcastReceiver，并且该BroadcastReceiver正在执行其onReceive()方法。<br>用户正在使用的程序，一般系统是不会杀死前台进程的，除非用户强制停止应用或者系统内存不足等极端情况会杀死。</p>
-<p>2.2、可见进程(Visible process)<br>场景：<br>拥有不在前台、但仍对用户可见的 Activity（已调用 onPause()）。<br>拥有绑定到可见（或前台）Activity 的 Service<br>用户正在使用，看得到，但是摸不着，没有覆盖到整个屏幕,只有屏幕的一部分可见。进程不包含任何前台组件，一般系统也是不会杀死可见进程的，除非要在资源吃紧的情况下，要保持某个或多个前台进程存活</p>
-<p>2.3、服务进程(Service process)<br>场景<br>某个进程中运行着一个Service且该Service是通过startService()启动的，与用户看见的界面没有直接关联。<br>在内存不足以维持所有前台进程和可见进程同时运行的情况下，服务进程会被杀死</p>
-<p>2.4、后台进程(Background process)<br>场景：<br>在用户按了”back”或者”home”后,程序本身看不到了,但是其实还在运行的程序，比如Activity调用了onPause方法<br>系统可能随时终止它们，回收内存</p>
-<p>2.5、空进程(Empty process)<br>场景：<br>某个进程不包含任何活跃的组件时该进程就会被置为空进程，完全没用,杀了它只有好处没坏处,第一个干它!</p>
+            <h1 id="一、进程回收机制"><a href="#一、进程回收机制" class="headerlink" title="一、进程回收机制"></a>一、进程回收机制</h1><p>当系统内存资源不足时，android 系统会杀掉不重要的进程来回收内存。根据网上的资料，android 系统中进程可分为以下几种：<br>1、前台进程(Foreground process)<br>场景：<br>某个进程持有一个正在与用户交互的Activity并且该Activity正处于resume的状态。<br>某个进程持有一个Service，并且该Service与用户正在交互的Activity绑定。<br>某个进程持有一个Service，并且该Service调用startForeground()方法使之位于前台运行。<br>某个进程持有一个Service，并且该Service正在执行它的某个生命周期回调方法，比如onCreate()、 onStart()或onDestroy()。<br>某个进程持有一个BroadcastReceiver，并且该BroadcastReceiver正在执行其onReceive()方法。<br>用户正在使用的程序，一般系统是不会杀死前台进程的，除非用户强制停止应用或者系统内存不足等极端情况会杀死。</p>
+<p>2、可见进程(Visible process)<br>场景：<br>拥有不在前台、但仍对用户可见的 Activity（已调用 onPause()）。<br>拥有绑定到可见（或前台）Activity 的 Service<br>用户正在使用，看得到，但是摸不着，没有覆盖到整个屏幕,只有屏幕的一部分可见。进程不包含任何前台组件，一般系统也是不会杀死可见进程的，除非要在资源吃紧的情况下，要保持某个或多个前台进程存活</p>
+<p>3、服务进程(Service process)<br>场景<br>某个进程中运行着一个Service且该Service是通过startService()启动的，与用户看见的界面没有直接关联。<br>在内存不足以维持所有前台进程和可见进程同时运行的情况下，服务进程会被杀死</p>
+<p>4、后台进程(Background process)<br>场景：<br>在用户按了”back”或者”home”后,程序本身看不到了,但是其实还在运行的程序，比如Activity调用了onPause方法<br>系统可能随时终止它们，回收内存</p>
+<p>5、空进程(Empty process)<br>场景：<br>某个进程不包含任何活跃的组件时该进程就会被置为空进程，完全没用,杀了它只有好处没坏处,第一个干它!</p>
 <p>假设现在内存不足，空进程都被杀光了，现在要杀后台进程，但是手机中后台进程很多，难道要一次性全部都清理掉？当然不是的，进程是有它的优先级的，这个优先级通过进程的adj值来反映，它是linux内核分配给每个系统进程的一个值，代表进程的优先级，进程回收机制就是根据这个优先级来决定是否进行回收。可以通过cat /proc/进程id/oom_adj可以看到当前进程的adj值</p>
-<p><strong>对于进程如何保活这个问题就转化成，如何降低oom_adj的值</strong></p>
-<h1 id="进程保活方案，进程保活的基本原理是提高进程的优先级："><a href="#进程保活方案，进程保活的基本原理是提高进程的优先级：" class="headerlink" title="进程保活方案，进程保活的基本原理是提高进程的优先级："></a>进程保活方案，进程保活的基本原理是提高进程的优先级：</h1><p>1、开启一个像素的Activity<br>据说这个是手Q的进程保活方案，基本思想，系统一般是不会杀死前台进程的。所以要使得进程常驻，我们只需要在锁屏的时候在本进程开启一个Activity，为了欺骗用户，让这个Activity的大小是1像素，并且透明无切换动画，在开屏幕的时候，把这个Activity关闭掉。这种方案的实现原理就是将进程的优化级提高到了最高等级的前台进程。</p>
-<ol>
-<li>利用 Notification 提升权限<br>2.1 方案设计思想<br>Android 中 Service 的优先级为4，通过 setForeground 接口可以将后台 Service 设置为前台 Service，使进程的优先级由4提升为2，从而使进程的优先级仅仅低于用户当前正在交互的进程，与可见进程优先级一致，使进程被杀死的概率大大降低。</li>
-</ol>
-<p>2.2 方案实现挑战<br>从 Android2.3 开始调用 setForeground 将后台 Service 设置为前台 Service 时，必须在系统的通知栏发送一条通知，也就是前台 Service 与一条可见的通知时绑定在一起的。</p>
-<p>对于不需要常驻通知栏的应用来说，该方案虽好，但却是用户感知的，无法直接使用。</p>
+<h1 id="二、进程保活方案，进程保活的基本原理是提高进程的优先级，即如何降低oom-adj的值："><a href="#二、进程保活方案，进程保活的基本原理是提高进程的优先级，即如何降低oom-adj的值：" class="headerlink" title="二、进程保活方案，进程保活的基本原理是提高进程的优先级，即如何降低oom_adj的值："></a>二、进程保活方案，进程保活的基本原理是提高进程的优先级，即如何降低oom_adj的值：</h1><p>1、开启一个像素的Activity<br>据说这个是手Q的进程保活方案，基本思想，系统一般是不会杀死前台进程的。所以要使得进程常驻，我们只需要在锁屏的时候在本进程开启一个Activity，为了欺骗用户，让这个Activity的大小是1像素，并且透明无切换动画，在开屏幕的时候，把这个Activity关闭掉。这种方案的实现原理就是将进程的优化级提高到了最高等级的前台进程。<br>2、利用 Notification 提升权限<br>2.1 方案设计思想<br>Android 中 Service 的优先级为4，通过 setForeground 接口可以将后台 Service 设置为前台 Service，使进程的优先级由4提升为2，从而使进程的优先级仅仅低于用户当前正在交互的进程，与可见进程优先级一致，使进程被杀死的概率大大降低。</p>
+<p>2.2 方案实现挑战<br>从 Android2.3 开始调用 setForeground 将后台 Service 设置为前台 Service 时，必须在系统的通知栏发送一条通知，也就是前台 Service 与一条可见的通知时绑定在一起的。<br>对于不需要常驻通知栏的应用来说，该方案虽好，但却是用户感知的，无法直接使用。</p>
 <p>2.3 方案挑战应对措施<br>通过实现一个内部 Service，在 LiveService 和其内部 Service 中同时发送具有相同 ID 的 Notification，然后将内部 Service 结束掉。随着内部 Service 的结束，Notification 将会消失，但系统优先级依然保持为2。<br><strong>据说这个微信也用过的进程保活方案，该方案实际利用了Android前台service的漏洞。</strong></p>
-<h1 id="进程死后拉活的方案"><a href="#进程死后拉活的方案" class="headerlink" title="进程死后拉活的方案"></a>进程死后拉活的方案</h1><ol>
-<li>JobSheduler<br>JobSheduler是作为进程死后复活的一种手段，这种方式即使用户强制关闭，也能被拉起来。</li>
-<li>将 Service 设置为 START_STICKY，利用系统机制在 Service 挂掉后自动拉活：<br>如下两种情况无法拉活：<br>Service 第一次被异常杀死后会在5秒内重启，第二次被杀死会在10秒内重启，第三次会在20秒内重启，一旦在短时间内 Service 被杀死达到5次，则系统不再拉起；<br>进程被取得 Root 权限的管理工具或系统工具通过 forestop 停止掉，无法重启。</li>
-</ol>
+<h1 id="三、进程死后拉活的方案"><a href="#三、进程死后拉活的方案" class="headerlink" title="三、进程死后拉活的方案"></a>三、进程死后拉活的方案</h1><p>1、JobSheduler<br>JobSheduler是作为进程死后复活的一种手段，这种方式即使用户强制关闭，也能被拉起来。<br>2、将 Service 设置为 START_STICKY，利用系统机制在 Service 挂掉后自动拉活：<br>如下两种情况无法拉活：<br>Service 第一次被异常杀死后会在5秒内重启，第二次被杀死会在10秒内重启，第三次会在20秒内重启，一旦在短时间内 Service 被杀死达到5次，则系统不再拉起；<br>进程被取得 Root 权限的管理工具或系统工具通过 forestop 停止掉，无法重启。</p>
 
           
         
