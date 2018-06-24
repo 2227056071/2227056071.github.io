@@ -354,7 +354,7 @@
 <p>MVP :<br>Model View Presenter<br>Model 负责数据交互 android 中的 View 指 Activity,Activity 负责了<br>ui 显示，Presenter 是指跟 android api 无关的业务逻辑代码。<br>Presenter 在中间，通过 View 接口和 View 进行交互</p>
 <p>MVP 优点：View 层只负责 ui 显示，减少了耦合度。<br>MVP 缺点：View 和 Presenter 互相引用并互相回调，代码不美观。当 View 发生变化时，Presenter<br>可能做相应的变化（改变更新 ui 的方法，改变回调的方法等），view 和 Presenter 之间还是存<br>在一定的耦合度，导致代码更改量比较大。</p>
 <p>MVVM:<br>View ViewModel Model<br>ViewModel 不再持有 View 的引用，通过绑定关系自动更新 ui ，ui的变化也自动反馈到<br>ViewModel</p>
-<p>MVVM 优点：<br>数据驱动<br>在MVVM中，以前开发模式中必须先处理业务数据，然后根据的数据变化，去获取UI的引用然后更新<br>UI，通过也是通过UI来获取用户输入，而在MVVM中，数据和业务逻辑处于一个独立的View Model中<br>，ViewModel只要关注数据和业务逻辑，不需要和UI或者控件打交道。由数据自动去驱动UI去自动更<br>新UI，UI的改变又同时自动反馈到数据，数据成为主导因素，这样使得在业务逻辑处理只要关心数<br>据，方便而且简单很多。<br>低耦合度<br>MVVM模式中，数据是独立于UI的，ViewModel只负责处理和提供数据，UI想怎么处理数据都由UI自<br>己决定，ViewModel 不涉及任何和UI相关的事也不持有UI控件的引用，即使控件改变（TextView<br>换成 EditText）ViewModel 几乎不需要更改任何代码，专注自己的数据处理就可以了。</p>
+<p>MVVM 优点：<br>低耦合度<br>MVVM模式中，数据是独立于UI的，ViewModel只负责处理和提供数据，UI想怎么处理数据都由UI自<br>己决定，ViewModel 不涉及任何和UI相关的事也不持有UI控件的引用，即使控件改变（TextView<br>换成 EditText）ViewModel 几乎不需要更改任何代码，专注自己的数据处理就可以了。</p>
 
           
         
