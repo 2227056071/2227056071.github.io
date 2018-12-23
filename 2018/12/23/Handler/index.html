@@ -87,17 +87,17 @@
 
 
 
-<meta name="description" content="Handler 机制分析handler 使用方法大致如下： `` HandlerThread handlerThread = new HandlerThread(&amp;quot;HandlerThread&amp;quot;); handlerThread.start(); Handler mHandler = new Handler(handlerThread.getLooper()){     @Over">
+<meta name="description" content="Handler 机制分析handler 使用方法大致如下： HandlerThread handlerThread = new HandlerThread(&amp;quot;HandlerThread&amp;quot;); handlerThread.start(); Handler mHandler = new Handler(handlerThread.getLooper()){     @Overrid">
 <meta name="keywords">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Handler">
 <meta property="og:url" content="http://yoursite.com/2018/12/23/Handler/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="Handler 机制分析handler 使用方法大致如下： `` HandlerThread handlerThread = new HandlerThread(&amp;quot;HandlerThread&amp;quot;); handlerThread.start(); Handler mHandler = new Handler(handlerThread.getLooper()){     @Over">
-<meta property="og:updated_time" content="2018-12-23T00:45:28.722Z">
+<meta property="og:description" content="Handler 机制分析handler 使用方法大致如下： HandlerThread handlerThread = new HandlerThread(&amp;quot;HandlerThread&amp;quot;); handlerThread.start(); Handler mHandler = new Handler(handlerThread.getLooper()){     @Overrid">
+<meta property="og:updated_time" content="2018-12-23T00:50:07.411Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Handler">
-<meta name="twitter:description" content="Handler 机制分析handler 使用方法大致如下： `` HandlerThread handlerThread = new HandlerThread(&amp;quot;HandlerThread&amp;quot;); handlerThread.start(); Handler mHandler = new Handler(handlerThread.getLooper()){     @Over">
+<meta name="twitter:description" content="Handler 机制分析handler 使用方法大致如下： HandlerThread handlerThread = new HandlerThread(&amp;quot;HandlerThread&amp;quot;); handlerThread.start(); Handler mHandler = new Handler(handlerThread.getLooper()){     @Overrid">
 
 
 
@@ -345,7 +345,6 @@
 
       
         <h3 id="Handler-机制分析"><a href="#Handler-机制分析" class="headerlink" title="Handler 机制分析"></a>Handler 机制分析</h3><p>handler 使用方法大致如下：</p>
-<p>``</p>
 <pre><code>HandlerThread handlerThread = new HandlerThread(&quot;HandlerThread&quot;);
 handlerThread.start();
 Handler mHandler = new Handler(handlerThread.getLooper()){
@@ -358,34 +357,31 @@ Handler mHandler = new Handler(handlerThread.getLooper()){
 Log.d(&quot;HandlerThreadActivity.class&quot;,&quot;uiThread1------&quot;+Thread.currentThread());//主线程
 Message msg = new Message();
 mHandler.sendMessage(msg);
-</code></pre><p>``</p>
-<p>从源码的角度分析一下整个流程：</p>
+</code></pre><p>从源码的角度分析一下整个流程：</p>
 <h4 id="1-HandlerThread-是-android-系统提供的线程类，此线程的-run-方法会执行以下两个方法"><a href="#1-HandlerThread-是-android-系统提供的线程类，此线程的-run-方法会执行以下两个方法" class="headerlink" title="1. HandlerThread 是 android 系统提供的线程类，此线程的 run 方法会执行以下两个方法:"></a>1. HandlerThread 是 android 系统提供的线程类，此线程的 run 方法会执行以下两个方法:</h4><p>Looper.prepare()和<br>Looper.loop(); 下面会分析这两个方法</p>
-<h4 id="2-Looper-prepare-。"><a href="#2-Looper-prepare-。" class="headerlink" title="2. Looper.prepare()。"></a>2. Looper.prepare()。</h4><p>此方法代码如下：<br>``</p>
+<h4 id="2-Looper-prepare-。"><a href="#2-Looper-prepare-。" class="headerlink" title="2. Looper.prepare()。"></a>2. Looper.prepare()。</h4><p>此方法代码如下：</p>
 <pre><code>if (sThreadLocal.get() != null) {
 throw new RuntimeException(&quot;Only one Looper may be created per thread&quot;);
 }
 sThreadLocal.set(new Looper(quitAllowed));
-</code></pre><p>``<br>该方法是在当前线程创建一个 looper 对象并存储此对象在当前线程中。<br>通过 Looper.myLooper() 方法可获取当前线程存储的 looper 对象创建 looper 对象的同时创建了一个 MessageQueue 类型的对象</p>
-<h4 id="3-创建-handler-对象。当-Handler-的构造方法参数为空时，会执行如下代码："><a href="#3-创建-handler-对象。当-Handler-的构造方法参数为空时，会执行如下代码：" class="headerlink" title="3. 创建 handler 对象。当 Handler 的构造方法参数为空时，会执行如下代码："></a>3. 创建 handler 对象。当 Handler 的构造方法参数为空时，会执行如下代码：</h4><p>``</p>
-<pre><code>mLooper = Looper.myLooper();
+</code></pre><p>该方法是在当前线程创建一个 looper 对象并存储此对象在当前线程中。<br>通过 Looper.myLooper() 方法可获取当前线程存储的 looper 对象创建 looper 对象的同时创建了一个 MessageQueue 类型的对象</p>
+<h4 id="3-创建-handler-对象。当-Handler-的构造方法参数为空时，会执行如下代码："><a href="#3-创建-handler-对象。当-Handler-的构造方法参数为空时，会执行如下代码：" class="headerlink" title="3. 创建 handler 对象。当 Handler 的构造方法参数为空时，会执行如下代码："></a>3. 创建 handler 对象。当 Handler 的构造方法参数为空时，会执行如下代码：</h4><pre><code>mLooper = Looper.myLooper();
 if (mLooper == null) {
 throw new RuntimeException(
 &quot;Can&apos;t create handler inside thread that has not called Looper.prepare()&quot;);}
 mQueue = mLooper.mQueue;
-</code></pre><p>``<br>由上面代码可以看出，创建 handler 对象的时候会把 looper 对象中的 mQueue 赋值给 handler 对象<br>中的 mQueue。</p>
-<h4 id="4-handler-sendMessage-Message-msg-。"><a href="#4-handler-sendMessage-Message-msg-。" class="headerlink" title="4. handler.sendMessage(Message msg)。"></a>4. handler.sendMessage(Message msg)。</h4><p>此方法实际是调用 enqueueMessage(MessageQueue queue, Message msg, long uptimeMillis)<br>方法。<br>``</p>
+</code></pre><p>由上面代码可以看出，创建 handler 对象的时候会把 looper 对象中的 mQueue 赋值给 handler 对象<br>中的 mQueue。</p>
+<h4 id="4-handler-sendMessage-Message-msg-。"><a href="#4-handler-sendMessage-Message-msg-。" class="headerlink" title="4. handler.sendMessage(Message msg)。"></a>4. handler.sendMessage(Message msg)。</h4><p>此方法实际是调用 enqueueMessage(MessageQueue queue, Message msg, long uptimeMillis)<br>方法。</p>
 <pre><code>msg.target = this; // 把当前 handler 对象保存到 msg.target
 if (mAsynchronous) {
     msg.setAsynchronous(true);
 }
 return queue.enqueueMessage(msg, uptimeMillis);
-</code></pre><p>``<br>queue.enqueueMessage(msg, uptimeMillis) 会把 message 对象给放到 mQueue 中<br>(mQueue 内部是使用单链表的形式存储 message 队列的。)</p>
-<h4 id="5-Looper-loop"><a href="#5-Looper-loop" class="headerlink" title="5. Looper.loop()"></a>5. Looper.loop()</h4><p>此方法代码如下：<br>``</p>
+</code></pre><p>queue.enqueueMessage(msg, uptimeMillis) 会把 message 对象给放到 mQueue 中<br>(mQueue 内部是使用单链表的形式存储 message 队列的。)</p>
+<h4 id="5-Looper-loop"><a href="#5-Looper-loop" class="headerlink" title="5. Looper.loop()"></a>5. Looper.loop()</h4><p>此方法代码如下：</p>
 <pre><code>final Looper me = myLooper();
 final MessageQueue queue = me.mQueue;
 ...
-
 for (;;) {
      Message msg = queue.next(); // might block
      if (msg == null) {
@@ -403,8 +399,17 @@ for (;;) {
     ...
      msg.recycleUnchecked();
  }
-</code></pre><p>``<br>looper() 方法中有个死循环 for 方法，一直在取消息队列中 queue 中的消息， 然后对每个 msg<br>调用 msg.target.dispatchMessage(msg)。如刚才所写，msg.target 实际就是 handler 对象，<br>即调用 handler.dispatchMessage 方法，dispatchMessage 方法会调用 handleMessage(Message msg)<br>方法，这时就可以对消息进行处理了。消息处理机制大致如此。</p>
-<h4 id="线程中创建-handler-时需要保证该线程中存在-looper-对象"><a href="#线程中创建-handler-时需要保证该线程中存在-looper-对象" class="headerlink" title="线程中创建 handler 时需要保证该线程中存在 looper 对象"></a>线程中创建 handler 时需要保证该线程中存在 looper 对象</h4><p>有人说在线程中创建 Handler 的实例时需要传入 Looper 实例。我想了想自己之前在 UI 线程使用<br>Handler 时 Handler 的构造函数传参是空的，也能正常使用 Handler。猜测 android 系统默认就在 UI 线程创建好了 Looper 实例。于是就去源码当中寻找答案。<br>android 启动 app 的入口 ActivityThread 的 main 方法调用了 Looper.prepareMainLooper()<br>方法。下面是 Looper.prepareMainLooper() 的实现：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">public static void prepareMainLooper() &#123;</div><div class="line">       prepare(false);</div><div class="line">       synchronized (Looper.class) &#123;</div><div class="line">           if (sMainLooper != null) &#123;</div><div class="line">               throw new IllegalStateException(&quot;The main Looper has already been prepared.&quot;);</div><div class="line">           &#125;</div><div class="line">           sMainLooper = myLooper();</div><div class="line">       &#125;</div><div class="line">   &#125;</div></pre></td></tr></table></figure></p>
+</code></pre><p>looper() 方法中有个死循环 for 方法，一直在取消息队列中 queue 中的消息， 然后对每个 msg<br>调用 msg.target.dispatchMessage(msg)。如刚才所写，msg.target 实际就是 handler 对象，<br>即调用 handler.dispatchMessage 方法，dispatchMessage 方法会调用 handleMessage(Message msg)<br>方法，这时就可以对消息进行处理了。消息处理机制大致如此。</p>
+<h5 id="线程中创建-handler-时需要保证该线程中存在-looper-对象"><a href="#线程中创建-handler-时需要保证该线程中存在-looper-对象" class="headerlink" title="线程中创建 handler 时需要保证该线程中存在 looper 对象"></a>线程中创建 handler 时需要保证该线程中存在 looper 对象</h5><p>有人说在线程中创建 Handler 的实例时需要传入 Looper 实例。我想了想自己之前在 UI 线程使用<br>Handler 时 Handler 的构造函数传参是空的，也能正常使用 Handler。猜测 android 系统默认就在 UI 线程创建好了 Looper 实例。于是就去源码当中寻找答案。<br>android 启动 app 的入口 ActivityThread 的 main 方法调用了 Looper.prepareMainLooper()<br>方法。下面是 Looper.prepareMainLooper() 的实现：</p>
+<pre><code>public static void prepareMainLooper() {
+   prepare(false);
+   synchronized (Looper.class) {
+       if (sMainLooper != null) {
+           throw new IllegalStateException(&quot;The main Looper has already been prepared.&quot;);
+       }
+       sMainLooper = myLooper();
+   }
+</code></pre><p>   }</p>
 <p>此方法是在主线程创建了 Looper 的实例 sMainLooper，所以说主线中Handler 的构造函数传参为空也是能正常使用。</p>
 
       
@@ -577,7 +582,7 @@ for (;;) {
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Handler-机制分析"><span class="nav-number">1.</span> <span class="nav-text">Handler 机制分析</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-HandlerThread-是-android-系统提供的线程类，此线程的-run-方法会执行以下两个方法"><span class="nav-number">1.1.</span> <span class="nav-text">1. HandlerThread 是 android 系统提供的线程类，此线程的 run 方法会执行以下两个方法:</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-Looper-prepare-。"><span class="nav-number">1.2.</span> <span class="nav-text">2. Looper.prepare()。</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-创建-handler-对象。当-Handler-的构造方法参数为空时，会执行如下代码："><span class="nav-number">1.3.</span> <span class="nav-text">3. 创建 handler 对象。当 Handler 的构造方法参数为空时，会执行如下代码：</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-handler-sendMessage-Message-msg-。"><span class="nav-number">1.4.</span> <span class="nav-text">4. handler.sendMessage(Message msg)。</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-Looper-loop"><span class="nav-number">1.5.</span> <span class="nav-text">5. Looper.loop()</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#线程中创建-handler-时需要保证该线程中存在-looper-对象"><span class="nav-number">1.6.</span> <span class="nav-text">线程中创建 handler 时需要保证该线程中存在 looper 对象</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#Handler-机制分析"><span class="nav-number">1.</span> <span class="nav-text">Handler 机制分析</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-HandlerThread-是-android-系统提供的线程类，此线程的-run-方法会执行以下两个方法"><span class="nav-number">1.1.</span> <span class="nav-text">1. HandlerThread 是 android 系统提供的线程类，此线程的 run 方法会执行以下两个方法:</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-Looper-prepare-。"><span class="nav-number">1.2.</span> <span class="nav-text">2. Looper.prepare()。</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-创建-handler-对象。当-Handler-的构造方法参数为空时，会执行如下代码："><span class="nav-number">1.3.</span> <span class="nav-text">3. 创建 handler 对象。当 Handler 的构造方法参数为空时，会执行如下代码：</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-handler-sendMessage-Message-msg-。"><span class="nav-number">1.4.</span> <span class="nav-text">4. handler.sendMessage(Message msg)。</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-Looper-loop"><span class="nav-number">1.5.</span> <span class="nav-text">5. Looper.loop()</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#线程中创建-handler-时需要保证该线程中存在-looper-对象"><span class="nav-number">1.5.1.</span> <span class="nav-text">线程中创建 handler 时需要保证该线程中存在 looper 对象</span></a></li></ol></li></ol></li></ol></div>
             
 
           </div>
