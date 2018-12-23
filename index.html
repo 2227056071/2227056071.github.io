@@ -362,7 +362,7 @@ Handler mHandler = new Handler(handlerThread.getLooper()){
 Log.d(&quot;HandlerThreadActivity.class&quot;,&quot;uiThread1------&quot;+Thread.currentThread());//主线程
 Message msg = new Message();
 mHandler.sendMessage(msg);
-</code></pre><p>从源码的角度分析一下整个流程：</p>
+</code></pre><p>总的来说，就是 Looper 不断地从 MessageQueue 里拿出 Message 执行。而 Message 是通过 Handler 插入 MessageQueue 的.<br>从源码的角度分析一下整个流程：</p>
 <h4 id="1-HandlerThread-是-android-系统提供的线程类，此线程的-run-方法会执行以下两个方法"><a href="#1-HandlerThread-是-android-系统提供的线程类，此线程的-run-方法会执行以下两个方法" class="headerlink" title="1. HandlerThread 是 android 系统提供的线程类，此线程的 run 方法会执行以下两个方法:"></a>1. HandlerThread 是 android 系统提供的线程类，此线程的 run 方法会执行以下两个方法:</h4><p>Looper.prepare()和<br>Looper.loop(); 下面会分析这两个方法</p>
 <h4 id="2-Looper-prepare-。"><a href="#2-Looper-prepare-。" class="headerlink" title="2. Looper.prepare()。"></a>2. Looper.prepare()。</h4><p>此方法代码如下：</p>
 <pre><code>if (sThreadLocal.get() != null) {
