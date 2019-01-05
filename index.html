@@ -250,6 +250,174 @@
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/05/动态规划之使用最小花费爬楼梯/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="DaQiang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://raw.githubusercontent.com/2227056071/imges/master/phone.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+                <a class="post-title-link" href="/2019/01/05/动态规划之使用最小花费爬楼梯/" itemprop="url">
+                  动态规划之使用最小花费爬楼梯
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-05T19:19:35+08:00">
+                2019-01-05
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2019/01/05/动态规划之使用最小花费爬楼梯/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2019/01/05/动态规划之使用最小花费爬楼梯/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/2019/01/05/动态规划之使用最小花费爬楼梯/" class="leancloud_visitors" data-flag-title="动态规划之使用最小花费爬楼梯">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数 </span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>#######  最近对动态规划算法感兴趣，在网站 leetcode 上找到了一个 “使用最小花费爬楼梯” 的题目。尝试了一下，磕磕绊绊地解决了这个算法。</p>
+<p>####### 题目描述如下：<br>数组的每个索引做为一个阶梯，第 i个阶梯对应着一个非负数的体力花费值 cost[i] ,索引从0开始。<br>每当你爬上一个阶梯你都要花费对应的体力花费值，然后你可以选择继续爬一个阶梯或者爬两个阶梯。<br>您需要找到达到楼层顶部的最低花费。在开始时，你可以选择从索引为 0 或 1 的元素作为初始阶梯。<br>示例 2:<br>输入: cost = [1, 100, 1, 1, 1, 100, 1, 1, 100, 1]<br>输出: 6<br>解释: 最低花费方式是从cost[0]开始，逐个经过那些1，跳过cost[3]，一共花费6。</p>
+<p>动态规划的解题思路可以从一下考虑：回溯算法实现 - 定义状态 - 画递归树 - 找重复子问题 - 画状态转移表 - 根据递推关系填表 - 将填表过程翻译成代码。<br>回溯算法大概是把所有可能的路径都走一遍，然后从中选择一条花费最小的路径。这里就不写代码了。</p>
+<p>最后贴一下代码：</p>
+<pre><code>class Solution {
+public int minCostClimbingStairs(int[] cost) {
+    if(cost == null || cost.length == 0 || cost.length == 1)
+    {
+        return 0;
+    }
+    int[][] status = new int[cost.length][2];
+    //初始化第一行数据
+    status[0][0] = 0;
+    status[0][1] = cost[0];
+
+    for(int i = 1;i&lt;cost.length;i++)
+    {
+        // statas[i][0] 表示不经过第i个阶梯，未经过第i个阶梯的一定经过第i-1个阶梯
+        status[i][0] = status[i-1][1];
+        //statas[i][0] 表示经过第i个阶梯，经过第i个阶梯不一定经过第i-1个阶梯
+        status[i][1] = cost[i] +Math.min(status[i-1][1],status[i-1][0]);
+    }
+    return Math.min(status[cost.length-1][0],status[cost.length-1][1]);
+
+}
+</code></pre><p>}</p>
+
+          
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/23/Handler/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1711,7 +1879,7 @@ if (&quot;arm64-v8a&quot;.equals(abi) || &quot;armeabi-v7a&quot;.equals(abi)) {
           
             <div class="site-state-item site-state-posts">
               <a href="/archives">
-                <span class="site-state-item-count">9</span>
+                <span class="site-state-item-count">10</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -1766,7 +1934,7 @@ if (&quot;arm64-v8a&quot;.equals(abi) || &quot;armeabi-v7a&quot;.equals(abi)) {
         <div class="copyright" >
   
   &copy; 
-  <span itemprop="copyrightYear">2018</span>
+  <span itemprop="copyrightYear">2019</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>
