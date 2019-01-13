@@ -87,17 +87,17 @@
 
 
 
-<meta name="description" content="一、进程回收机制当系统内存资源不足时，android 系统会杀掉不重要的进程来回收内存。根据网上的资料，android 系统中进程可分为以下几种：1、前台进程(Foreground process)场景：某个进程持有一个正在与用户交互的Activity并且该Activity正处于resume的状态。某个进程持有一个Service，并且该Service与用户正在交互的Activity绑定。某个进程持">
+<meta name="description" content="breakPad 使用按照张邵文老师在极客专栏的建议，熟悉一下 c 代码的崩溃和分析流程。breakPad 是谷歌开源的工具，可用来采集和分析 c 代码的崩溃信息。整体流程不复杂，可分为以下几步：  导入邵文老师在 github 的 sample 工程（建议保证环境能够科学上网，要下载不少东西），在手机上运行点击崩溃按钮，手机 sdcard 上新增了崩溃日志。 接下来就要使用 minidump_s">
 <meta name="keywords">
 <meta property="og:type" content="article">
-<meta property="og:title" content="“进程保活">
-<meta property="og:url" content="http://yoursite.com/2018/05/06/“进程保活/index.html">
+<meta property="og:title" content="Hexo">
+<meta property="og:url" content="http://yoursite.com/2019/01/13/breakPadDemo/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="一、进程回收机制当系统内存资源不足时，android 系统会杀掉不重要的进程来回收内存。根据网上的资料，android 系统中进程可分为以下几种：1、前台进程(Foreground process)场景：某个进程持有一个正在与用户交互的Activity并且该Activity正处于resume的状态。某个进程持有一个Service，并且该Service与用户正在交互的Activity绑定。某个进程持">
-<meta property="og:updated_time" content="2018-05-06T13:49:44.369Z">
+<meta property="og:description" content="breakPad 使用按照张邵文老师在极客专栏的建议，熟悉一下 c 代码的崩溃和分析流程。breakPad 是谷歌开源的工具，可用来采集和分析 c 代码的崩溃信息。整体流程不复杂，可分为以下几步：  导入邵文老师在 github 的 sample 工程（建议保证环境能够科学上网，要下载不少东西），在手机上运行点击崩溃按钮，手机 sdcard 上新增了崩溃日志。 接下来就要使用 minidump_s">
+<meta property="og:updated_time" content="2019-01-13T00:07:46.387Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="“进程保活">
-<meta name="twitter:description" content="一、进程回收机制当系统内存资源不足时，android 系统会杀掉不重要的进程来回收内存。根据网上的资料，android 系统中进程可分为以下几种：1、前台进程(Foreground process)场景：某个进程持有一个正在与用户交互的Activity并且该Activity正处于resume的状态。某个进程持有一个Service，并且该Service与用户正在交互的Activity绑定。某个进程持">
+<meta name="twitter:title" content="Hexo">
+<meta name="twitter:description" content="breakPad 使用按照张邵文老师在极客专栏的建议，熟悉一下 c 代码的崩溃和分析流程。breakPad 是谷歌开源的工具，可用来采集和分析 c 代码的崩溃信息。整体流程不复杂，可分为以下几步：  导入邵文老师在 github 的 sample 工程（建议保证环境能够科学上网，要下载不少东西），在手机上运行点击崩溃按钮，手机 sdcard 上新增了崩溃日志。 接下来就要使用 minidump_s">
 
 
 
@@ -125,13 +125,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/2018/05/06/“进程保活/"/>
+  <link rel="canonical" href="http://yoursite.com/2019/01/13/breakPadDemo/"/>
 
 
 
 
 
-  <title> “进程保活 | Hexo </title>
+  <title>  | Hexo </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
@@ -250,7 +250,7 @@
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/06/“进程保活/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/13/breakPadDemo/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="DaQiang">
@@ -271,7 +271,7 @@
             
             
               
-                “进程保活
+                
               
             
           </h1>
@@ -286,8 +286,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-06T20:14:07+08:00">
-                2018-05-06
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-13T08:09:02+08:00">
+                2019-01-13
               </time>
             
 
@@ -305,9 +305,9 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2018/05/06/“进程保活/#comments" itemprop="discussionUrl">
+                <a href="/2019/01/13/breakPadDemo/#comments" itemprop="discussionUrl">
                   <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2018/05/06/“进程保活/" itemprop="commentCount"></span>
+                        data-disqus-identifier="2019/01/13/breakPadDemo/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -315,7 +315,7 @@
 
           
           
-             <span id="/2018/05/06/“进程保活/" class="leancloud_visitors" data-flag-title="“进程保活">
+             <span id="/2019/01/13/breakPadDemo/" class="leancloud_visitors" data-flag-title="">
                <span class="post-meta-divider">|</span>
                <span class="post-meta-item-icon">
                  <i class="fa fa-eye"></i>
@@ -344,16 +344,16 @@
       
 
       
-        <h1 id="一、进程回收机制"><a href="#一、进程回收机制" class="headerlink" title="一、进程回收机制"></a>一、进程回收机制</h1><p>当系统内存资源不足时，android 系统会杀掉不重要的进程来回收内存。根据网上的资料，android 系统中进程可分为以下几种：<br>1、前台进程(Foreground process)<br>场景：<br>某个进程持有一个正在与用户交互的Activity并且该Activity正处于resume的状态。<br>某个进程持有一个Service，并且该Service与用户正在交互的Activity绑定。<br>某个进程持有一个Service，并且该Service调用startForeground()方法使之位于前台运行。<br>某个进程持有一个Service，并且该Service正在执行它的某个生命周期回调方法，比如onCreate()、 onStart()或onDestroy()。<br>某个进程持有一个BroadcastReceiver，并且该BroadcastReceiver正在执行其onReceive()方法。<br>用户正在使用的程序，一般系统是不会杀死前台进程的，除非用户强制停止应用或者系统内存不足等极端情况会杀死。</p>
-<p>2、可见进程(Visible process)<br>场景：<br>拥有不在前台、但仍对用户可见的 Activity（已调用 onPause()）。<br>拥有绑定到可见（或前台）Activity 的 Service<br>用户正在使用，看得到，但是摸不着，没有覆盖到整个屏幕,只有屏幕的一部分可见。进程不包含任何前台组件，一般系统也是不会杀死可见进程的，除非要在资源吃紧的情况下，要保持某个或多个前台进程存活</p>
-<p>3、服务进程(Service process)<br>场景<br>某个进程中运行着一个Service且该Service是通过startService()启动的，与用户看见的界面没有直接关联。<br>在内存不足以维持所有前台进程和可见进程同时运行的情况下，服务进程会被杀死</p>
-<p>4、后台进程(Background process)<br>场景：<br>在用户按了”back”或者”home”后,程序本身看不到了,但是其实还在运行的程序，比如Activity调用了onPause方法<br>系统可能随时终止它们，回收内存</p>
-<p>5、空进程(Empty process)<br>场景：<br>某个进程不包含任何活跃的组件时该进程就会被置为空进程，完全没用,杀了它只有好处没坏处,第一个干它!</p>
-<p>假设现在内存不足，空进程都被杀光了，现在要杀后台进程，但是手机中后台进程很多，难道要一次性全部都清理掉？当然不是的，进程是有它的优先级的，这个优先级通过进程的adj值来反映，它是linux内核分配给每个系统进程的一个值，代表进程的优先级，进程回收机制就是根据这个优先级来决定是否进行回收。可以通过cat /proc/进程id/oom_adj可以看到当前进程的adj值</p>
-<h1 id="二、进程保活方案，进程保活的基本原理是提高进程的优先级，即如何降低oom-adj的值："><a href="#二、进程保活方案，进程保活的基本原理是提高进程的优先级，即如何降低oom-adj的值：" class="headerlink" title="二、进程保活方案，进程保活的基本原理是提高进程的优先级，即如何降低oom_adj的值："></a>二、进程保活方案，进程保活的基本原理是提高进程的优先级，即如何降低oom_adj的值：</h1><p>1、开启一个像素的Activity<br>据说这个是手Q的进程保活方案，基本思想，系统一般是不会杀死前台进程的。所以要使得进程常驻，我们只需要在锁屏的时候在本进程开启一个Activity，为了欺骗用户，让这个Activity的大小是1像素，并且透明无切换动画，在开屏幕的时候，把这个Activity关闭掉。这种方案的实现原理就是将进程的优化级提高到了最高等级的前台进程。<br>2、利用 Notification 提升权限<br>2.1 方案设计思想<br>Android 中 Service 的优先级为4，通过 setForeground 接口可以将后台 Service 设置为前台 Service，使进程的优先级由4提升为2，从而使进程的优先级仅仅低于用户当前正在交互的进程，与可见进程优先级一致，使进程被杀死的概率大大降低。</p>
-<p>2.2 方案实现挑战<br>从 Android2.3 开始调用 setForeground 将后台 Service 设置为前台 Service 时，必须在系统的通知栏发送一条通知，也就是前台 Service 与一条可见的通知时绑定在一起的。<br>对于不需要常驻通知栏的应用来说，该方案虽好，但却是用户感知的，无法直接使用。</p>
-<p>2.3 方案挑战应对措施<br>通过实现一个内部 Service，在 LiveService 和其内部 Service 中同时发送具有相同 ID 的 Notification，然后将内部 Service 结束掉。随着内部 Service 的结束，Notification 将会消失，但系统优先级依然保持为2。<br><strong>据说这个微信也用过的进程保活方案，该方案实际利用了Android前台service的漏洞。</strong></p>
-<h1 id="三、进程死后拉活的方案"><a href="#三、进程死后拉活的方案" class="headerlink" title="三、进程死后拉活的方案"></a>三、进程死后拉活的方案</h1><p>1、JobSheduler<br>JobSheduler是作为进程死后复活的一种手段，这种方式即使用户强制关闭，也能被拉起来。<br>2、将 Service 设置为 START_STICKY，利用系统机制在 Service 挂掉后自动拉活：<br>如下两种情况无法拉活：<br>Service 第一次被异常杀死后会在5秒内重启，第二次被杀死会在10秒内重启，第三次会在20秒内重启，一旦在短时间内 Service 被杀死达到5次，则系统不再拉起；<br>进程被取得 Root 权限的管理工具或系统工具通过 forestop 停止掉，无法重启。</p>
+        <h4 id="breakPad-使用"><a href="#breakPad-使用" class="headerlink" title="breakPad 使用"></a>breakPad 使用</h4><p>按照张邵文老师在极客专栏的建议，熟悉一下 c 代码的崩溃和分析流程。<br>breakPad 是谷歌开源的工具，可用来采集和分析 c 代码的崩溃信息。<br>整体流程不复杂，可分为以下几步：</p>
+<ol>
+<li>导入邵文老师在 github 的 sample 工程（建议保证环境能够科学上网，要下载不少东西），在手机上<br>运行点击崩溃按钮，手机 sdcard 上新增了崩溃日志。</li>
+<li>接下来就要使用 minidump_stackwalker 工具来解析崩溃日志了。自己在这一步卡了很长时间：<br>邵文老师提供的 minidump_stackwalker 工具是在 mac 环境编译出的，我这里是 Ubuntu 环境，不能<br>直接使用，需要自己重新编译出 minidump_stackwalker 工具。<br>一开始时按照 <a href="https://github.com/google/breakpad" target="_blank" rel="external">https://github.com/google/breakpad</a> 的方法尝试编译，下载 depot_tools 工具后<br>，fetch breakpad 老是失败，上网搜了不少方法，还是没有解决 fetch breakpad 失败的问题。后来<br>自己想了想，fetch breakpad 实际上就是拉取 breakpad 的源码，既然通过 depot_tools 工具下载<br>失败，直接从 github 上把 breakpad 源码 clone 下来不就好了。<br>从 github 上 clone 下源码后，进入源码目录 cd src 然后 ./configure &amp;&amp; make，这时会报错缺少<br>文件 third_party/lss/linux_syscall_support.h , 需要在源码根目录下创建 third_party/lss,<br>然后去 <a href="https://chromium.googlesource.com/linux-syscall-support/+/refs/heads/master" target="_blank" rel="external">https://chromium.googlesource.com/linux-syscall-support/+/refs/heads/master</a><br>下载 linux-syscall-support-refs_heads_master.tar.gz 并解压文件到 third_party/lss 目录<br>下，此时再 ./configure &amp;&amp; make 即可成功编译。编译成功后在源码根目录下进入 /src/processor<br>目录就能发现 minidump_stackwalker 工具已经生成出来了。</li>
+<li>使用 minidump_stackwalk crashDump/<em>*</em>.dmp &gt;crashLog.txt 生成堆栈跟踪log。打开文件<br>后可看到：</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div></pre></td><td class="code"><pre><div class="line">Operating system: Android</div><div class="line">                  0.0.0 Linux 3.18.31-perf-g2d4873d #1 SMP PREEMPT Thu Aug 30 02:48:40 CST 2018 aarch64</div><div class="line">CPU: arm64</div><div class="line">     4 CPUs</div><div class="line"></div><div class="line">GPU: UNKNOWN</div><div class="line"></div><div class="line">Crash reason:  SIGSEGV /SEGV_MAPERR</div><div class="line">Crash address: 0x0</div><div class="line">Process uptime: not available</div><div class="line"></div><div class="line">Thread 0 (crashed)</div><div class="line"> 0  libcrash-lib.so + 0x600</div><div class="line">     x0 = 0x0000007f7de3e300    x1 = 0x0000007fd1f16da4</div><div class="line">     x2 = 0x006e006512d26880    x3 = 0x0074006100720065</div><div class="line">     x4 = 0x0000000000000004    x5 = 0x0000007f7de96a00</div><div class="line">     x6 = 0x0000000066642a85    x7 = 0x0000007fd1f16ef8</div><div class="line">     x8 = 0x0000000000000000    x9 = 0x0000000000000001</div><div class="line">    x10 = 0x0000000000430000   x11 = 0x0000000000000000</div><div class="line">    x12 = 0x000000000000018c   x13 = 0x0000000000000062</div><div class="line">    x14 = 0x0000007f818855d0   x15 = 0x922c5c5cc3324f73</div><div class="line">    x16 = 0x0000007f7c70efe8   x17 = 0x0000007f7c6fe5ec</div><div class="line">    x18 = 0x00000000ffffffff   x19 = 0x0000007f7de96a00</div><div class="line">    x20 = 0x0000007f7051fce0   x21 = 0x0000007f7de96a00</div><div class="line">    x22 = 0x0000007fd1f1707c   x23 = 0x0000007f7c807a5c</div><div class="line">    x24 = 0x0000000000000004   x25 = 0x21634bbd9d3186d1</div><div class="line">    x26 = 0x0000007f7de96a98   x27 = 0x21634bbd9d3186d1</div><div class="line">    x28 = 0x0000007fd1f16da0    fp = 0x0000007fd1f16d70</div><div class="line">     lr = 0x0000007f7c6fe624    sp = 0x0000007fd1f16d50</div><div class="line">     pc = 0x0000007f7c6fe600</div><div class="line">    Found by: given as instruction pointer in context</div><div class="line"> 1  libcrash-lib.so + 0x620</div><div class="line">     fp = 0x0000007fd1f16da0    lr = 0x0000007f7d8b4c14</div><div class="line">     sp = 0x0000007fd1f16d80    pc = 0x0000007f7c6fe624</div><div class="line">    Found by: previous frame&apos;s frame pointer</div></pre></td></tr></table></figure>
+<p>由日志可以看出崩溃原因时原因为 libcrash-lib.so 的代码里出现空指针了，此时记录下地址 0X600</p>
+<p>4.符号解析，可以使用 ndk 中提供的addr2line来根据地址进行一个符号反解的过程.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">arm-linux-androideabi-addr2line -f -C -e sample/build/intermediates/transforms/mergeJniLibs/debug/0/lib/armeabi-v7a/libcrash-lib.so 0x77e                           </div><div class="line">//输出结果如下</div><div class="line">Crash()</div></pre></td></tr></table></figure>
 
       
     </div>
@@ -390,18 +390,14 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2018/06/03/TCP与UDP相关/" rel="next" title="TCP与UDP相关">
-                <i class="fa fa-chevron-left"></i> TCP与UDP相关
-              </a>
-            
           </div>
 
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2018/04/30/okhttp源码解析-1/" rel="prev" title="okhttp-源码解析">
-                okhttp-源码解析 <i class="fa fa-chevron-right"></i>
+              <a href="/2019/01/05/动态规划之使用最小花费爬楼梯/" rel="prev" title="动态规划之使用最小花费爬楼梯">
+                动态规划之使用最小花费爬楼梯 <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -529,7 +525,7 @@
             
 
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#一、进程回收机制"><span class="nav-number">1.</span> <span class="nav-text">一、进程回收机制</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#二、进程保活方案，进程保活的基本原理是提高进程的优先级，即如何降低oom-adj的值："><span class="nav-number">2.</span> <span class="nav-text">二、进程保活方案，进程保活的基本原理是提高进程的优先级，即如何降低oom_adj的值：</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#三、进程死后拉活的方案"><span class="nav-number">3.</span> <span class="nav-text">三、进程死后拉活的方案</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#breakPad-使用"><span class="nav-number">1.</span> <span class="nav-text">breakPad 使用</span></a></li></ol></div>
             
 
           </div>
@@ -670,9 +666,9 @@
     
       <script type="text/javascript">
         var disqus_config = function () {
-          this.page.url = 'http://yoursite.com/2018/05/06/“进程保活/';
-          this.page.identifier = '2018/05/06/“进程保活/';
-          this.page.title = '“进程保活';
+          this.page.url = 'http://yoursite.com/2019/01/13/breakPadDemo/';
+          this.page.identifier = '2019/01/13/breakPadDemo/';
+          this.page.title = '';
         };
         var d = document, s = d.createElement('script');
         s.src = 'https://huqiang.disqus.com/embed.js';
