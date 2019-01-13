@@ -273,7 +273,7 @@
               
                 
                 <a class="post-title-link" href="/2019/01/13/breakPadDemo/" itemprop="url">
-                  未命名
+                  breakPad 使用
                 </a>
               
             
@@ -289,7 +289,7 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-13T08:09:02+08:00">
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-13T00:00:00+08:00">
                 2019-01-13
               </time>
             
@@ -318,7 +318,7 @@
 
           
           
-             <span id="/2019/01/13/breakPadDemo/" class="leancloud_visitors" data-flag-title="">
+             <span id="/2019/01/13/breakPadDemo/" class="leancloud_visitors" data-flag-title="breakPad 使用">
                <span class="post-meta-divider">|</span>
                <span class="post-meta-item-icon">
                  <i class="fa fa-eye"></i>
@@ -349,10 +349,10 @@
       
         
           
-            <h4 id="breakPad-使用"><a href="#breakPad-使用" class="headerlink" title="breakPad 使用"></a>breakPad 使用</h4><p>按照张邵文老师在极客专栏的建议，熟悉一下 c 代码的崩溃和分析流程。<br>breakPad 是谷歌开源的工具，可用来采集和分析 c 代码的崩溃信息。<br>整体流程不复杂，可分为以下几步：</p>
+            <p>按照张邵文老师在极客专栏的建议，熟悉一下 c 代码的崩溃和分析流程。<br>breakPad 是谷歌开源的工具，可用来采集和分析 c 代码的崩溃信息。<br>整体流程不复杂，可分为以下几步：</p>
 <ol>
-<li>导入邵文老师在 github 的 sample 工程（建议保证环境能够科学上网，要下载不少东西），在手机上<br>运行点击崩溃按钮，手机 sdcard 上新增了崩溃日志。</li>
-<li>接下来就要使用 minidump_stackwalker 工具来解析崩溃日志了。自己在这一步卡了很长时间：<br>邵文老师提供的 minidump_stackwalker 工具是在 mac 环境编译出的，我这里是 Ubuntu 环境，不能<br>直接使用，需要自己重新编译出 minidump_stackwalker 工具。<br>一开始时按照 <a href="https://github.com/google/breakpad" target="_blank" rel="external">https://github.com/google/breakpad</a> 的方法尝试编译，下载 depot_tools 工具后<br>，fetch breakpad 老是失败，上网搜了不少方法，还是没有解决 fetch breakpad 失败的问题。后来<br>自己想了想，fetch breakpad 实际上就是拉取 breakpad 的源码，既然通过 depot_tools 工具下载<br>失败，直接从 github 上把 breakpad 源码 clone 下来不就好了。<br>从 github 上 clone 下源码后，进入源码目录 cd src 然后 ./configure &amp;&amp; make，这时会报错缺少<br>文件 third_party/lss/linux_syscall_support.h , 需要在源码根目录下创建 third_party/lss,<br>然后去 <a href="https://chromium.googlesource.com/linux-syscall-support/+/refs/heads/master" target="_blank" rel="external">https://chromium.googlesource.com/linux-syscall-support/+/refs/heads/master</a><br>下载 linux-syscall-support-refs_heads_master.tar.gz 并解压文件到 third_party/lss 目录<br>下，此时再 ./configure &amp;&amp; make 即可成功编译。编译成功后在源码根目录下进入 /src/processor<br>目录就能发现 minidump_stackwalker 工具已经生成出来了。</li>
+<li>导入邵文老师在 github 的 sample 工程（建议保证环境能够科学上网，要下载不少东西），在手机上运行点击崩溃按钮，手机 sdcard 上新增了崩溃日志。</li>
+<li>接下来就要使用 minidump_stackwalker 工具来解析崩溃日志了。自己在这一步卡了很长时间：<br>邵文老师提供的 minidump_stackwalker 工具是在 mac 环境编译出的，我这里是 Ubuntu 环境，不能直接使用，需要自己重新编译出 minidump_stackwalker 工具。一开始时按照 <a href="https://github.com/google/breakpad" target="_blank" rel="external">https://github.com/google/breakpad</a> 的方法尝试编译，下载 depot_tools 工具后，fetch breakpad 老是失败，上网搜了不少方法，还是没有解决 fetch breakpad 失败的问题。后来自己想了想，fetch breakpad 实际上就是拉取 breakpad 的源码，既然通过 depot_tools 工具下载失败，直接从 github 上把 breakpad 源码 clone 下来不就好了。从 github 上 clone 下源码后，进入源码目录 cd src 然后 ./configure &amp;&amp; make，这时会报错缺少文件third_party/lss/linux_syscall_support.h , 需要在源码根目录下创建 third_party/lss,然后去 <a href="https://chromium.googlesource.com/linux-syscall-support/+/refs/heads/master" target="_blank" rel="external">https://chromium.googlesource.com/linux-syscall-support/+/refs/heads/master</a> 下载 linux-syscall-support-refs_heads_master.tar.gz 并解压文件到 third_party/lss 目录下，此时再 ./configure &amp;&amp; make 即可成功编译。编译成功后在源码根目录下进入 /src/processor目录就能发现 minidump_stackwalker 工具已经生成出来了。</li>
 <li>使用 minidump_stackwalk crashDump/<em>*</em>.dmp &gt;crashLog.txt 生成堆栈跟踪log。打开文件<br>后可看到：</li>
 </ol>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div></pre></td><td class="code"><pre><div class="line">Operating system: Android</div><div class="line">                  0.0.0 Linux 3.18.31-perf-g2d4873d #1 SMP PREEMPT Thu Aug 30 02:48:40 CST 2018 aarch64</div><div class="line">CPU: arm64</div><div class="line">     4 CPUs</div><div class="line"></div><div class="line">GPU: UNKNOWN</div><div class="line"></div><div class="line">Crash reason:  SIGSEGV /SEGV_MAPERR</div><div class="line">Crash address: 0x0</div><div class="line">Process uptime: not available</div><div class="line"></div><div class="line">Thread 0 (crashed)</div><div class="line"> 0  libcrash-lib.so + 0x600</div><div class="line">     x0 = 0x0000007f7de3e300    x1 = 0x0000007fd1f16da4</div><div class="line">     x2 = 0x006e006512d26880    x3 = 0x0074006100720065</div><div class="line">     x4 = 0x0000000000000004    x5 = 0x0000007f7de96a00</div><div class="line">     x6 = 0x0000000066642a85    x7 = 0x0000007fd1f16ef8</div><div class="line">     x8 = 0x0000000000000000    x9 = 0x0000000000000001</div><div class="line">    x10 = 0x0000000000430000   x11 = 0x0000000000000000</div><div class="line">    x12 = 0x000000000000018c   x13 = 0x0000000000000062</div><div class="line">    x14 = 0x0000007f818855d0   x15 = 0x922c5c5cc3324f73</div><div class="line">    x16 = 0x0000007f7c70efe8   x17 = 0x0000007f7c6fe5ec</div><div class="line">    x18 = 0x00000000ffffffff   x19 = 0x0000007f7de96a00</div><div class="line">    x20 = 0x0000007f7051fce0   x21 = 0x0000007f7de96a00</div><div class="line">    x22 = 0x0000007fd1f1707c   x23 = 0x0000007f7c807a5c</div><div class="line">    x24 = 0x0000000000000004   x25 = 0x21634bbd9d3186d1</div><div class="line">    x26 = 0x0000007f7de96a98   x27 = 0x21634bbd9d3186d1</div><div class="line">    x28 = 0x0000007fd1f16da0    fp = 0x0000007fd1f16d70</div><div class="line">     lr = 0x0000007f7c6fe624    sp = 0x0000007fd1f16d50</div><div class="line">     pc = 0x0000007f7c6fe600</div><div class="line">    Found by: given as instruction pointer in context</div><div class="line"> 1  libcrash-lib.so + 0x620</div><div class="line">     fp = 0x0000007fd1f16da0    lr = 0x0000007f7d8b4c14</div><div class="line">     sp = 0x0000007fd1f16d80    pc = 0x0000007f7c6fe624</div><div class="line">    Found by: previous frame&apos;s frame pointer</div></pre></td></tr></table></figure>
