@@ -685,13 +685,9 @@ mHandler.sendMessage(msg);
 throw new RuntimeException(&quot;Only one Looper may be created per thread&quot;);
 }
 sThreadLocal.set(new Looper(quitAllowed));
-</code></pre><p>该方法是在当前线程创建一个 looper 对象并存储此对象在当前线程中。<br>通过 Looper.myLooper() 方法可获取当前线程存储的 looper 对象创建 looper 对象的同时创建了一个 MessageQueue 类型的对象</p>
-<h4 id="3-创建-handler-对象。当-Handler-的构造方法参数为空时，会执行如下代码："><a href="#3-创建-handler-对象。当-Handler-的构造方法参数为空时，会执行如下代码：" class="headerlink" title="3. 创建 handler 对象。当 Handler 的构造方法参数为空时，会执行如下代码："></a>3. 创建 handler 对象。当 Handler 的构造方法参数为空时，会执行如下代码：</h4><pre><code>mLooper = Looper.myLooper();
-if (mLooper == null) {
-throw new RuntimeException(
-&quot;Can&apos;t create handler inside thread that has not called Looper.prepare()&quot;);}
-mQueue = mLooper.mQueue;
-</code></pre><p>由上面代码可以看出，创建 handler 对象的时候会把 looper 对象中的 mQueue 赋值给 handler 对象<br>中的 mQueue。</p>
+</code></pre><p>该方法是在当前线程创建一个 looper 对象并存储此对象在当前线程中。</p>
+<h4 id="3-创建-handler-对象，会执行如下代码："><a href="#3-创建-handler-对象，会执行如下代码：" class="headerlink" title="3. 创建 handler 对象，会执行如下代码："></a>3. 创建 handler 对象，会执行如下代码：</h4><pre><code>mQueue = mLooper.mQueue;
+</code></pre><p>由上面代码可以看出，创建 handler 对象的时候会把 looper 对象中的 mQueue 赋值给 handler 对象中的 mQueue。</p>
 <h4 id="4-handler-sendMessage-Message-msg-。"><a href="#4-handler-sendMessage-Message-msg-。" class="headerlink" title="4. handler.sendMessage(Message msg)。"></a>4. handler.sendMessage(Message msg)。</h4><p>此方法实际是调用 enqueueMessage(MessageQueue queue, Message msg, long uptimeMillis)<br>方法。</p>
 <pre><code>msg.target = this; // 把当前 handler 对象保存到 msg.target
 if (mAsynchronous) {
