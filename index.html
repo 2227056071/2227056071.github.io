@@ -250,6 +250,171 @@
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/28/AsyncTask/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="DaQiang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://raw.githubusercontent.com/2227056071/imges/master/phone.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+                <a class="post-title-link" href="/2019/01/28/AsyncTask/" itemprop="url">
+                  未命名
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-01-28T00:34:04+08:00">
+                2019-01-28
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2019/01/28/AsyncTask/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2019/01/28/AsyncTask/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/2019/01/28/AsyncTask/" class="leancloud_visitors" data-flag-title="">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数 </span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h2 id="AsyncTask-源码分析"><a href="#AsyncTask-源码分析" class="headerlink" title="AsyncTask 源码分析"></a>AsyncTask 源码分析</h2><p>AsyncTask 是很熟悉的一个工具类了，可以使用它来执行耗时操作(比如下载文件)。用法如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line">private class DownloadFilesTask extends AsyncTask&lt;URL, Integer, Long&gt; &#123;</div><div class="line">     protected Long doInBackground(URL... urls) &#123;</div><div class="line">         int count = urls.length;</div><div class="line">         long totalSize = 0;</div><div class="line">         for (int i = 0; i &lt; count; i++) &#123;</div><div class="line">             totalSize += Downloader.downloadFile(urls[i]);</div><div class="line">             publishProgress((int) ((i / (float) count) * 100));</div><div class="line">             // Escape early if cancel() is called</div><div class="line">             if (isCancelled()) break;</div><div class="line">         &#125;</div><div class="line">         return totalSize;</div><div class="line">     &#125;</div><div class="line"></div><div class="line">     protected void onProgressUpdate(Integer... progress) &#123;</div><div class="line">         setProgressPercent(progress[0]);</div><div class="line">     &#125;</div><div class="line"></div><div class="line">     protected void onPostExecute(Long result) &#123;</div><div class="line">         showDialog(&quot;Downloaded &quot; + result + &quot; bytes&quot;);</div><div class="line">     &#125;</div><div class="line"> &#125;</div><div class="line"></div><div class="line"> DownloadFilesTask task = new DownloadFilesTask();</div><div class="line"> task.execute();</div></pre></td></tr></table></figure>
+<p>下面从源码的角度来分析一下整个流程：</p>
+<h5 id="1-AsyncTask-的构造方法分析。"><a href="#1-AsyncTask-的构造方法分析。" class="headerlink" title="1. AsyncTask 的构造方法分析。"></a>1. AsyncTask 的构造方法分析。</h5><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div></pre></td><td class="code"><pre><div class="line">mWorker = new WorkerRunnable&lt;Params, Result&gt;() &#123;</div><div class="line">            public Result call() throws Exception &#123;</div><div class="line">                mTaskInvoked.set(true);</div><div class="line">                Result result = null;</div><div class="line">                try &#123;</div><div class="line">                    Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);</div><div class="line">                    //noinspection unchecked</div><div class="line">                    result = doInBackground(mParams);</div><div class="line">                    Binder.flushPendingCommands();</div><div class="line">                &#125; catch (Throwable tr) &#123;</div><div class="line">                    mCancelled.set(true);</div><div class="line">                    throw tr;</div><div class="line">                &#125; finally &#123;</div><div class="line">                    postResult(result);</div><div class="line">                &#125;</div><div class="line">                return result;</div><div class="line">            &#125;</div><div class="line">        &#125;;</div><div class="line"></div><div class="line">mFuture = new FutureTask&lt;Result&gt;(mWorker) &#123;</div><div class="line">            @Override</div><div class="line">            protected void done() &#123;</div><div class="line">                try &#123;</div><div class="line">                    postResultIfNotInvoked(get());</div><div class="line">                &#125; catch (InterruptedException e) &#123;</div><div class="line">                    android.util.Log.w(LOG_TAG, e);</div><div class="line">                &#125; catch (ExecutionException e) &#123;</div><div class="line">                    throw new RuntimeException(&quot;An error occurred while executing doInBackground()&quot;,</div><div class="line">                            e.getCause());</div><div class="line">                &#125; catch (CancellationException e) &#123;</div><div class="line">                    postResultIfNotInvoked(null);</div><div class="line">                &#125;</div><div class="line">            &#125;</div><div class="line">        &#125;;</div></pre></td></tr></table></figure>
+<p>从代码中可以看到，构造方法创建了两个对象。第一个匿名类对象里的回调方法 call() 里调用了  doInBackground 方法。第二个匿名类对象的回调方法 done() 方法里调用了 postResultIfNotInvoked(get()) 方法。</p>
+<h5 id="2-task-execute-分析"><a href="#2-task-execute-分析" class="headerlink" title="2. task.execute() 分析"></a>2. task.execute() 分析</h5><p>接下来看一下 AsyncTask 的 execute() 源码:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">return executeOnExecutor(sDefaultExecutor, params);</div></pre></td></tr></table></figure>
+<p>只有一行代码。继续跟踪下去：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line">if (mStatus != Status.PENDING) &#123;</div><div class="line">         switch (mStatus) &#123;</div><div class="line">             case RUNNING:</div><div class="line">                 throw new IllegalStateException(&quot;Cannot execute task:&quot;</div><div class="line">                         + &quot; the task is already running.&quot;);</div><div class="line">             case FINISHED:</div><div class="line">                 throw new IllegalStateException(&quot;Cannot execute task:&quot;</div><div class="line">                         + &quot; the task has already been executed &quot;</div><div class="line">                         + &quot;(a task can be executed only once)&quot;);</div><div class="line">         &#125;</div><div class="line">     &#125;</div><div class="line"></div><div class="line">     mStatus = Status.RUNNING;</div><div class="line"></div><div class="line">     onPreExecute();</div><div class="line"></div><div class="line">     mWorker.mParams = params;</div><div class="line">     exec.execute(mFuture);</div><div class="line"></div><div class="line">     return this;</div></pre></td></tr></table></figure>
+<p>onPreExecute() 方法得到了执行（在主线程中）。接着执行 exec.execute(mFuture) ，实际上是执行 SerialExecutor 的 execute() 方法。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">public synchronized void execute(final Runnable r) &#123;</div><div class="line">           mTasks.offer(new Runnable() &#123;</div><div class="line">               public void run() &#123;</div><div class="line">                   try &#123;</div><div class="line">                       r.run();</div><div class="line">                   &#125; finally &#123;</div><div class="line">                       scheduleNext();</div><div class="line">                   &#125;</div><div class="line">               &#125;</div><div class="line">           &#125;);</div><div class="line">           if (mActive == null) &#123;</div><div class="line">               scheduleNext();</div><div class="line">           &#125;</div><div class="line">       &#125;</div></pre></td></tr></table></figure>
+<p>SerialExecutor 的 execute() 方法传参是 mFuture 对象，所以会执行 mFuture 对象的 run() 方法。FutureTask 的 run() 方法源码如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div></pre></td><td class="code"><pre><div class="line">public void run() &#123;</div><div class="line">        if (state != NEW ||</div><div class="line">            !UNSAFE.compareAndSwapObject(this, runnerOffset,</div><div class="line">                                         null, Thread.currentThread()))</div><div class="line">            return;</div><div class="line">        try &#123;</div><div class="line">            Callable&lt;V&gt; c = callable;</div><div class="line">            if (c != null &amp;&amp; state == NEW) &#123;</div><div class="line">                V result;</div><div class="line">                boolean ran;</div><div class="line">                try &#123;</div><div class="line">                    result = c.call();</div><div class="line">                    ran = true;</div><div class="line">                &#125; catch (Throwable ex) &#123;</div><div class="line">                    result = null;</div><div class="line">                    ran = false;</div><div class="line">                    setException(ex);</div><div class="line">                &#125;</div><div class="line">                if (ran)</div><div class="line">                    set(result);</div><div class="line">            &#125;</div><div class="line">        &#125; finally &#123;</div><div class="line">            // runner must be non-null until state is settled to</div><div class="line">            // prevent concurrent calls to run()</div><div class="line">            runner = null;</div><div class="line">            // state must be re-read after nulling runner to prevent</div><div class="line">            // leaked interrupts</div><div class="line">            int s = state;</div><div class="line">            if (s &gt;= INTERRUPTING)</div><div class="line">                handlePossibleCancellationInterrupt(s);</div><div class="line">        &#125;</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>中间有一句代码 ： result = c.call();  该行代码是在子线程中执行的，c.call() 方法即为刚才第一个匿名类对象里的回调方法 call() 方法，这句意味着 doInBackground() 方法子线程中被调用了。</p>
+<p>随后会执行 ran = true;<br>if (ran)<br>  set(result);<br>跟踪下去会执行 finishCompletion 方法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line">private void finishCompletion() &#123;</div><div class="line">        // assert state &gt; COMPLETING;</div><div class="line">        for (WaitNode q; (q = waiters) != null;) &#123;</div><div class="line">            if (UNSAFE.compareAndSwapObject(this, waitersOffset, q, null)) &#123;</div><div class="line">                for (;;) &#123;</div><div class="line">                    Thread t = q.thread;</div><div class="line">                    if (t != null) &#123;</div><div class="line">                        q.thread = null;</div><div class="line">                        LockSupport.unpark(t);</div><div class="line">                    &#125;</div><div class="line">                    WaitNode next = q.next;</div><div class="line">                    if (next == null)</div><div class="line">                        break;</div><div class="line">                    q.next = null; // unlink to help gc</div><div class="line">                    q = next;</div><div class="line">                &#125;</div><div class="line">                break;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        done();</div><div class="line"></div><div class="line">        callable = null;        // to reduce footprint</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>注意倒数第二行的 done(); 方法，它就是刚才第二个匿名类对象mFuture 的回调方法 done() 方法 也就是说postResultIfNotInvoked(get()) 方法就得到了执行。 postResultIfNotInvoked 方法调用了 postResult 方法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">private Result postResult(Result result) &#123;</div><div class="line">       @SuppressWarnings(&quot;unchecked&quot;)</div><div class="line">       Message message = getHandler().obtainMessage(MESSAGE_POST_RESULT,</div><div class="line">               new AsyncTaskResult&lt;Result&gt;(this, result));</div><div class="line">       message.sendToTarget();</div><div class="line">       return result;</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+<p>这就涉及了 handler 异步消息处理。主线程中的 handler 方法会处理此消息：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">public void handleMessage(Message msg) &#123;</div><div class="line">            AsyncTaskResult&lt;?&gt; result = (AsyncTaskResult&lt;?&gt;) msg.obj;</div><div class="line">            switch (msg.what) &#123;</div><div class="line">                case MESSAGE_POST_RESULT:</div><div class="line">                    // There is only one result</div><div class="line">                    result.mTask.finish(result.mData[0]);</div><div class="line">                    break;</div><div class="line">                case MESSAGE_POST_PROGRESS:</div><div class="line">                    result.mTask.onProgressUpdate(result.mData);</div><div class="line">                    break;</div><div class="line">            &#125;</div><div class="line">        &#125;</div></pre></td></tr></table></figure>
+<p>MESSAGE_POST_RESULT 的消息到来时会执行 result.mTask.finish(result.mData[0]); finish 方法源码如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">private void finish(Result result) &#123;</div><div class="line">       if (isCancelled()) &#123;</div><div class="line">           onCancelled(result);</div><div class="line">       &#125; else &#123;</div><div class="line">           onPostExecute(result);</div><div class="line">       &#125;</div><div class="line">       mStatus = Status.FINISHED;</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+<p>onPostExecute(result); 代表 AsyncTask 的方法 onPostExecute 得到了执行（主线程中执行）</p>
+<h5 id="整体来看-AysncTask-的原理并不复杂。作为一个工具类，它很好地封装了接口给开发者调用，方便了操作耗时任务及在主线程中更新-ui。"><a href="#整体来看-AysncTask-的原理并不复杂。作为一个工具类，它很好地封装了接口给开发者调用，方便了操作耗时任务及在主线程中更新-ui。" class="headerlink" title="整体来看 AysncTask 的原理并不复杂。作为一个工具类，它很好地封装了接口给开发者调用，方便了操作耗时任务及在主线程中更新 ui。"></a>整体来看 AysncTask 的原理并不复杂。作为一个工具类，它很好地封装了接口给开发者调用，方便了操作耗时任务及在主线程中更新 ui。</h5>
+          
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/01/13/breakPadDemo/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1663,165 +1828,6 @@ for (;;) {
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/06/17/20170617/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="DaQiang">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="https://raw.githubusercontent.com/2227056071/imges/master/phone.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Hexo">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/2017/06/17/20170617/" itemprop="url">
-                  Android 缩小客户端体积之 so 方向
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-06-17T00:00:00+08:00">
-                2017-06-17
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-              <span class="post-comments-count">
-                <span class="post-meta-divider">|</span>
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-comment-o"></i>
-                </span>
-                <a href="/2017/06/17/20170617/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2017/06/17/20170617/" itemprop="commentCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-          
-             <span id="/2017/06/17/20170617/" class="leancloud_visitors" data-flag-title="Android 缩小客户端体积之 so 方向">
-               <span class="post-meta-divider">|</span>
-               <span class="post-meta-item-icon">
-                 <i class="fa fa-eye"></i>
-               </span>
-               
-                 <span class="post-meta-item-text">阅读次数 </span>
-               
-                 <span class="leancloud-visitors-count"></span>
-             </span>
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>公司的 android 客户端大小已经达到了 60 多 MB，减小客户端体积的大小已经迫在眉睫。研究一下项目代码发现 android 工程 libs 下的 so 文件已经达到了 30 多 MB (压缩前的大小)。于是决定从 so 文件方面进行体积的优化。最终的结果是客户端大小减小了 8.7 MB。下面是详细的过程。</p>
-<p>android 工程下有 armeabi 和 armeabi-v7a 两个文件夹，两个文件夹下各自有 10 多个 so 文件。比较两个文件夹下的 so 文件的 hash 值，一比较吓一跳，两个文件夹下有 13 个 so 文件的 hash 值是相同的。也就是说有 13 个 so 文件是重复的。（13 个 so 文件大小总共 15 MB ）。</p>
-<p>到这里可能有人会想直接把 armeabi 或者 armeabi-v7a 下面重复的 13 个 so 文件删除了。不过这是不可行的。首先看一张图：</p>
-<p><img src="https://raw.githubusercontent.com/2227056071/imges/master/ABI.png" alt="图片"></p>
-<p>该图是说不同的 ABI 文件夹对应不同指令集的 cpu 。v5 架构 cpu 会加载 armeabi 文件夹下面的 so 文件，v7 架构的 cpu 会加载 armeabi-7a 下面的 so 文件夹。假如说 v7 架构的手机需要加载一个 a.so 文件，首先 系统会判断 armeabi-v7a 文件夹是否存在。如果存在直接加载 armeabi-v7a 下面的 a.so ,如果 armeabi-v7a 下面没有 a.so 文件，app 会直接闪退。如果工程下面没有 armeabi-v7a 文件夹，系统自动加载 armeabi 下面对应的 a.so 文件，假如 armeabi 下面也不存在 a.so 的话，程序也会闪退。</p>
-<p>从 armeabi 的角度来看，直接删除 armeabi 下面重复的 13 个 so 文件是不可以的，目前公司项目需要支持低配的手机，所以 armeabi 文件夹下面的 so 文件是不能被删除的。<br>从 armeabi-v7a 的角度来看，直接删除 armeabi-v7a 下面重复的 13 个 so 文件会导致应用闪退。把整个 armeabi-v7a 删除掉也不好， 因为项目中 armeabi-v7a 有两个 so 文件是 支持 v7 架构的，它们与 armeabi 下面对应的 so 文件 hash 值是不一样的，直接删除掉整个 armeabi-v7a 文件夹会影响 app 的性能。</p>
-<p>那有什么方案能既能支持老旧的手机设备又不会有性能的损耗呢？手淘和微信客户端的做法为我们提供了一种思路，如下图：</p>
-<p><img src="https://raw.githubusercontent.com/2227056071/imges/master/taobaoso.png" alt=""><br><img src="https://raw.githubusercontent.com/2227056071/imges/master/weiXin_so.png" alt=""><br><img src="https://raw.githubusercontent.com/2227056071/imges/master/taobao_v7.png" alt=""><br><img src="https://raw.githubusercontent.com/2227056071/imges/master/wx_v7.jpg" alt=""></p>
-<p>由上图可见微信 、手淘的客户端<strong>只保留了 armeabi 文件夹</strong>（微信和手淘 armeabi 文件夹下保留了几个  -v7a.so 文件，微信、淘宝客户端是在 app 运行的时候判断手机处理器类型决定是否加载  -v7a.so 文件）。</p>
-<p>所以最终的方案是删除掉整个 armeabi-v7a 文件夹，将对性能有影响的 v7a 架构的 so 文件放到 armeabi 文件夹下。假如有个 a.so 文件对性能有较大影响，在 armeabi 文件夹放 a.so 和 a_v7a.so 两个 so 文件。代码这样写：</p>
-<pre><code>String abi = Build.CPU_ABI;
-if (&quot;arm64-v8a&quot;.equals(abi) || &quot;armeabi-v7a&quot;.equals(abi)) {
-        System.loadLibrary(&quot;a_v7a&quot;);
-    } else {
-        System.loadLibrary(&quot;a&quot;);
-    }
-</code></pre><p>  按照上面这种方案实施后，公司 android 客户端大小缩减了 8.7 MB，心里真是很有成就感呢^-^。</p>
-
-          
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
   </section>
 
   
@@ -1871,7 +1877,7 @@ if (&quot;arm64-v8a&quot;.equals(abi) || &quot;armeabi-v7a&quot;.equals(abi)) {
           
             <div class="site-state-item site-state-posts">
               <a href="/archives">
-                <span class="site-state-item-count">11</span>
+                <span class="site-state-item-count">12</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
