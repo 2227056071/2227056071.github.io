@@ -407,7 +407,7 @@
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/01/04/RetryAndFollowUpInterceptor拦截器分析/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/01/04/CallServerInterceptor分析/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="DaQiang">
@@ -429,8 +429,8 @@
             
               
                 
-                <a class="post-title-link" href="/2021/01/04/RetryAndFollowUpInterceptor拦截器分析/" itemprop="url">
-                  OKHttp拦截器RetryAndFollowUpInterceptor分析
+                <a class="post-title-link" href="/2021/01/04/CallServerInterceptor分析/" itemprop="url">
+                  OKHttp拦截器CallServerInterceptor分析
                 </a>
               
             
@@ -465,9 +465,9 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2021/01/04/RetryAndFollowUpInterceptor拦截器分析/#comments" itemprop="discussionUrl">
+                <a href="/2021/01/04/CallServerInterceptor分析/#comments" itemprop="discussionUrl">
                   <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2021/01/04/RetryAndFollowUpInterceptor拦截器分析/" itemprop="commentCount"></span>
+                        data-disqus-identifier="2021/01/04/CallServerInterceptor分析/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -475,7 +475,7 @@
 
           
           
-             <span id="/2021/01/04/RetryAndFollowUpInterceptor拦截器分析/" class="leancloud_visitors" data-flag-title="OKHttp拦截器RetryAndFollowUpInterceptor分析">
+             <span id="/2021/01/04/CallServerInterceptor分析/" class="leancloud_visitors" data-flag-title="OKHttp拦截器CallServerInterceptor分析">
                <span class="post-meta-divider">|</span>
                <span class="post-meta-item-icon">
                  <i class="fa fa-eye"></i>
@@ -506,528 +506,12 @@
       
         
           
-            <p>RetryAndFollowUpInterceptor 拦截器为 OkHttp 拦截器集合中的第一个拦截器，它的作用顾名思义为网络请求失败时发起重试、重定向，下面看一下 intercept 方法的具体代码：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div></pre></td><td class="code"><pre><div class="line">Request request = chain.request();</div><div class="line"> RealInterceptorChain realChain = (RealInterceptorChain) chain;</div><div class="line"> Call call = realChain.call();</div><div class="line"> // 创建 streamAllocation</div><div class="line"> streamAllocation = new StreamAllocation(client.connectionPool(), createAddress(request.url()),</div><div class="line">     call, eventListener, callStackTrace);</div><div class="line"> int followUpCount = 0;//重定向的次数</div><div class="line"> Response priorResponse = null;</div><div class="line"> while (true) &#123;</div><div class="line"> 	//请求被取消</div><div class="line">   if (canceled) &#123;</div><div class="line">     streamAllocation.release();</div><div class="line">     throw new IOException(&quot;Canceled&quot;);</div><div class="line">   &#125;</div><div class="line">   Response response;</div><div class="line">   boolean releaseConnection = true;</div><div class="line">   try &#123;</div><div class="line">     response = realChain.proceed(request, streamAllocation, null, null);</div><div class="line">     releaseConnection = false;</div><div class="line">   &#125; catch (RouteException e) &#123;</div><div class="line">   	// 抛出的路由异常</div><div class="line">     // The attempt to connect via a route failed. The request will not have been sent.</div><div class="line">     // 判断是否能恢复</div><div class="line">     if (!recover(e.getLastConnectException(), false, request)) &#123;</div><div class="line">       throw e.getLastConnectException();</div><div class="line">     &#125;</div><div class="line">     releaseConnection = false;</div><div class="line">     continue;//继续重试</div><div class="line">   &#125; catch (IOException e) &#123;</div><div class="line">     // An attempt to communicate with a server failed. The request may have been sent.</div><div class="line">     boolean requestSendStarted = !(e instanceof ConnectionShutdownException);</div><div class="line">     // 判断是否能恢复</div><div class="line">     if (!recover(e, requestSendStarted, request)) throw e;</div><div class="line">     releaseConnection = false;</div><div class="line">     continue;//继续重试</div><div class="line">   &#125; finally &#123;</div><div class="line">     streamAllocation.release();</div><div class="line">   &#125;</div><div class="line"></div><div class="line">//重定向请求</div><div class="line">   Request followUp = followUpRequest(response);</div><div class="line">   if (followUp == null) &#123;</div><div class="line">   	//无需重定向，直接返回</div><div class="line">     return response;</div><div class="line">   &#125;</div><div class="line">   if (++followUpCount &gt; MAX_FOLLOW_UPS) &#123;</div><div class="line">    	//超过了重定向的最大次数</div><div class="line">     throw new ProtocolException(&quot;Too many follow-up requests: &quot; + followUpCount);</div><div class="line">   &#125;</div><div class="line">		if (followUp.body() instanceof UnrepeatableRequestBody) &#123;</div><div class="line">     streamAllocation.release();</div><div class="line">     throw new HttpRetryException(&quot;Cannot retry streamed HTTP body&quot;, response.code());</div><div class="line">   &#125;</div><div class="line"></div><div class="line">   if (!sameConnection(response, followUp.url())) &#123;</div><div class="line">   	// 如果连接的地址发生变化则创建一个新的 streamAllocation</div><div class="line">     streamAllocation.release();</div><div class="line">     streamAllocation = new StreamAllocation(client.connectionPool(),</div><div class="line">         createAddress(followUp.url()), call, eventListener, callStackTrace);</div><div class="line">   &#125; else if (streamAllocation.codec() != null) &#123;</div><div class="line">     throw new IllegalStateException(&quot;Closing the body of &quot; + response</div><div class="line">         + &quot; didn&apos;t close its backing stream. Bad interceptor?&quot;);</div><div class="line">   &#125;</div><div class="line">   request = followUp;</div><div class="line">   priorResponse = response;</div><div class="line"> &#125;</div></pre></td></tr></table></figure>
-<p>大致流程为: 在一个循环里发起请求，如果请求失败则判断是否能发起重试，如果允许重试则继续发起请求。请求失败后判断是否重试的逻辑在 recover 方法里:</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line">private boolean recover(IOException e, boolean requestSendStarted, Request userRequest) &#123;</div><div class="line">  streamAllocation.streamFailed(e);</div><div class="line"></div><div class="line">  // The application layer has forbidden retries.</div><div class="line">  // 调用者是否配置允许重试，如果不允许的话直接返回 false</div><div class="line">  if (!client.retryOnConnectionFailure()) return false;</div><div class="line"></div><div class="line">  // We can&apos;t send the request body again.</div><div class="line">  // 如果已经发出请求且请求体不可缓存则返回 false</div><div class="line">  if (requestSendStarted &amp;&amp; userRequest.body() instanceof UnrepeatableRequestBody) return false;</div><div class="line"></div><div class="line">  // This exception is fatal.</div><div class="line">  // 根据异常的类型判断是否能重试</div><div class="line">  if (!isRecoverable(e, requestSendStarted)) return false;</div><div class="line"></div><div class="line">  // No more routes to attempt.</div><div class="line">  // 没有路由地址可用</div><div class="line">  if (!streamAllocation.hasMoreRoutes()) return false;</div><div class="line"></div><div class="line">  // For failure recovery, use the same route selector with a new connection.</div><div class="line">  return true;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>如果成功返回了 response 则根据 responseCode 判断是否需要发起重定向请求(当 响应code的值为 3xx 重定向、401、407、408 时)，具体要看一下 followUpRequest 方法:</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div><div class="line">105</div><div class="line">106</div><div class="line">107</div><div class="line">108</div><div class="line">109</div><div class="line">110</div></pre></td><td class="code"><pre><div class="line">private Request followUpRequest(Response userResponse) throws IOException &#123;</div><div class="line">  if (userResponse == null) throw new IllegalStateException();</div><div class="line">  Connection connection = streamAllocation.connection();</div><div class="line">  Route route = connection != null</div><div class="line">      ? connection.route()</div><div class="line">      : null;</div><div class="line">  int responseCode = userResponse.code();</div><div class="line"></div><div class="line">  final String method = userResponse.request().method();</div><div class="line">  switch (responseCode) &#123;</div><div class="line">  	// HTTP Status-Code 407 缺乏位于浏览器与可以访问所请求资源的服务器之间的代理服务器（proxy server ）要求的身份验证凭证</div><div class="line">    case HTTP_PROXY_AUTH:</div><div class="line">      Proxy selectedProxy = route != null</div><div class="line">          ? route.proxy()</div><div class="line">          : client.proxy();</div><div class="line">      if (selectedProxy.type() != Proxy.Type.HTTP) &#123;</div><div class="line">        throw new ProtocolException(&quot;Received HTTP_PROXY_AUTH (407) code while not using proxy&quot;);</div><div class="line">      &#125;</div><div class="line">      return client.proxyAuthenticator().authenticate(route, userResponse);</div><div class="line"></div><div class="line">	// HTTP Status-Code 401: 缺乏目标资源要求的身份验证凭证.</div><div class="line">    case HTTP_UNAUTHORIZED:</div><div class="line">      return client.authenticator().authenticate(route, userResponse);</div><div class="line"></div><div class="line">	// 临时重定向响应状态码，表示请求的资源暂时地被移动到了响应的 Location 首部所指向的 URL 上</div><div class="line">    case HTTP_PERM_REDIRECT:</div><div class="line">    // 308 Permanent Redirect（永久重定向）是表示重定向的响应状态码，说明请求的资源已经被永久的移动到了由 Location 首部指定的 URL 上</div><div class="line">    case HTTP_TEMP_REDIRECT:</div><div class="line">      // &quot;If the 307 or 308 status code is received in response to a request other than GET</div><div class="line">      // or HEAD, the user agent MUST NOT automatically redirect the request&quot;</div><div class="line">      //对于 307 308，如果请求方法不是 GET 或者 HEAD,则不能发起重定向.可参考文档https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html</div><div class="line">      if (!method.equals(&quot;GET&quot;) &amp;&amp; !method.equals(&quot;HEAD&quot;)) &#123;</div><div class="line">        return null;</div><div class="line">      &#125;</div><div class="line">      // fall-through</div><div class="line">    case HTTP_MULT_CHOICE:</div><div class="line">    case HTTP_MOVED_PERM:</div><div class="line">    case HTTP_MOVED_TEMP:</div><div class="line">    case HTTP_SEE_OTHER:</div><div class="line">      // Does the client allow redirects?</div><div class="line">      // 客户端是否允许重定向？</div><div class="line">      if (!client.followRedirects()) return null;</div><div class="line">		// 获取重定向的地址</div><div class="line">      String location = userResponse.header(&quot;Location&quot;);</div><div class="line">      if (location == null) return null;</div><div class="line">      HttpUrl url = userResponse.request().url().resolve(location);</div><div class="line"></div><div class="line">      // Don&apos;t follow redirects to unsupported protocols.</div><div class="line">      if (url == null) return null;</div><div class="line"></div><div class="line">      // If configured, don&apos;t follow redirects between SSL and non-SSL.</div><div class="line">      // 如果禁止 SSL 和非 SSL 间进行重定向，则返回 null</div><div class="line">      boolean sameScheme = url.scheme().equals(userResponse.request().url().scheme());</div><div class="line">      if (!sameScheme &amp;&amp; !client.followSslRedirects()) return null;</div><div class="line"></div><div class="line">      // Most redirects don&apos;t include a request body.</div><div class="line">      // 大多数请求体不包含请求体</div><div class="line">      Request.Builder requestBuilder = userResponse.request().newBuilder();</div><div class="line">      if (HttpMethod.permitsRequestBody(method)) &#123;</div><div class="line">        final boolean maintainBody = HttpMethod.redirectsWithBody(method);</div><div class="line">        if (HttpMethod.redirectsToGet(method)) &#123;</div><div class="line">          requestBuilder.method(&quot;GET&quot;, null);</div><div class="line">        &#125; else &#123;</div><div class="line">          RequestBody requestBody = maintainBody ? userResponse.request().body() : null;</div><div class="line">          requestBuilder.method(method, requestBody);</div><div class="line">        &#125;</div><div class="line">        //如果不包含请求体则移除相应 header</div><div class="line">        if (!maintainBody) &#123;</div><div class="line">          requestBuilder.removeHeader(&quot;Transfer-Encoding&quot;);</div><div class="line">          requestBuilder.removeHeader(&quot;Content-Length&quot;);</div><div class="line">          requestBuilder.removeHeader(&quot;Content-Type&quot;);</div><div class="line">        &#125;</div><div class="line">      &#125;</div><div class="line"></div><div class="line">      // When redirecting across hosts, drop all authentication headers. This</div><div class="line">      // is potentially annoying to the application layer since they have no</div><div class="line">      // way to retain them.</div><div class="line">      // 如果不是相同的连接，则移除掉 Authorization</div><div class="line">      if (!sameConnection(userResponse, url)) &#123;</div><div class="line">        requestBuilder.removeHeader(&quot;Authorization&quot;);</div><div class="line">      &#125;</div><div class="line"></div><div class="line">      return requestBuilder.url(url).build();</div><div class="line"></div><div class="line">    case HTTP_CLIENT_TIMEOUT:</div><div class="line">      // 408&apos;s are rare in practice, but some servers like HAProxy use this response code. The</div><div class="line">      // spec says that we may repeat the request without modifications. Modern browsers also</div><div class="line">      // repeat the request (even non-idempotent ones.)</div><div class="line">      // 响应状态码 408 Request Timeout 表示服务器想要将没有在使用的连接关闭。一些服务器会在空闲连接上发送此信息，即便是在客户端没有发送任何请求的情况下</div><div class="line">      if (!client.retryOnConnectionFailure()) &#123;</div><div class="line">        // The application layer has directed us not to retry the request.</div><div class="line">        return null;</div><div class="line">      &#125;</div><div class="line"></div><div class="line">      if (userResponse.request().body() instanceof UnrepeatableRequestBody) &#123;</div><div class="line">        return null;</div><div class="line">      &#125;</div><div class="line"></div><div class="line">      if (userResponse.priorResponse() != null</div><div class="line">          &amp;&amp; userResponse.priorResponse().code() == HTTP_CLIENT_TIMEOUT) &#123;</div><div class="line">        // We attempted to retry and got another timeout. Give up.</div><div class="line">        return null;</div><div class="line">      &#125;</div><div class="line">		// 重新发起原始请求</div><div class="line">      return userResponse.request();</div><div class="line"></div><div class="line">    default:</div><div class="line">      return null;</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-
-          
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/01/04/ConnectInterceptor解析/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="DaQiang">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="https://raw.githubusercontent.com/2227056071/imges/master/phone.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Hexo">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/2021/01/04/ConnectInterceptor解析/" itemprop="url">
-                  OKHttp拦截器之ConnectInterceptor分析
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-01-04T00:00:00+08:00">
-                2021-01-04
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-              <span class="post-comments-count">
-                <span class="post-meta-divider">|</span>
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-comment-o"></i>
-                </span>
-                <a href="/2021/01/04/ConnectInterceptor解析/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2021/01/04/ConnectInterceptor解析/" itemprop="commentCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-          
-             <span id="/2021/01/04/ConnectInterceptor解析/" class="leancloud_visitors" data-flag-title="OKHttp拦截器之ConnectInterceptor分析">
-               <span class="post-meta-divider">|</span>
-               <span class="post-meta-item-icon">
-                 <i class="fa fa-eye"></i>
-               </span>
-               
-                 <span class="post-meta-item-text">阅读次数 </span>
-               
-                 <span class="leancloud-visitors-count"></span>
-             </span>
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>ConnectInterceptor 拦截器的作用是同服务器建立连接并把连接传递给下一个拦截器。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">@Override public Response intercept(Chain chain) throws IOException &#123;</div><div class="line">  RealInterceptorChain realChain = (RealInterceptorChain) chain;</div><div class="line">  Request request = realChain.request();</div><div class="line">  StreamAllocation streamAllocation = realChain.streamAllocation();</div><div class="line"></div><div class="line">  // We need the network to satisfy this request. Possibly for validating a conditional GET.</div><div class="line">  boolean doExtensiveHealthChecks = !request.method().equals(&quot;GET&quot;);</div><div class="line">  HttpCodec httpCodec = streamAllocation.newStream(client, chain, doExtensiveHealthChecks);</div><div class="line">  RealConnection connection = streamAllocation.connection();</div><div class="line"></div><div class="line">  return realChain.proceed(request, streamAllocation, httpCodec, connection);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>看一下 streamAllocation.newStream -&gt; findHealthyConnection -&gt; findConnection 方法:</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div><div class="line">105</div><div class="line">106</div><div class="line">107</div><div class="line">108</div><div class="line">109</div><div class="line">110</div><div class="line">111</div><div class="line">112</div><div class="line">113</div><div class="line">114</div><div class="line">115</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> * Returns a connection to host a new stream. This prefers the existing connection if it exists,</div><div class="line"> * then the pool, finally building a new connection.</div><div class="line"> */</div><div class="line">	// 优先复用已存在的连接、其次从连接池中获取、最后创建新的连接</div><div class="line">private RealConnection findConnection(int connectTimeout, int readTimeout, int writeTimeout,</div><div class="line">    boolean connectionRetryEnabled) throws IOException &#123;</div><div class="line">  boolean foundPooledConnection = false;</div><div class="line">  RealConnection result = null;</div><div class="line">  Route selectedRoute = null;</div><div class="line">  Connection releasedConnection;</div><div class="line">  Socket toClose;</div><div class="line">  synchronized (connectionPool) &#123;</div><div class="line">    releasedConnection = this.connection;</div><div class="line">    toClose = releaseIfNoNewStreams();</div><div class="line"></div><div class="line">    //连接已存在</div><div class="line">    if (this.connection != null) &#123;</div><div class="line">      // We had an already-allocated connection and it&apos;s good.</div><div class="line">      result = this.connection;</div><div class="line">      releasedConnection = null;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    if (result == null) &#123;</div><div class="line">      // Attempt to get a connection from the pool.</div><div class="line">      // 从连接池中获取连接。注意最后一个参数是 null，代表从连接池中获取完全匹配的连接(host和nonhost完全一致)</div><div class="line">      Internal.instance.get(connectionPool, address, this, null);</div><div class="line">      if (connection != null) &#123;</div><div class="line">        foundPooledConnection = true;</div><div class="line">        result = connection;</div><div class="line">      &#125; else &#123;</div><div class="line">        selectedRoute = route;</div><div class="line">      &#125;</div><div class="line">    &#125;</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  if (result != null) &#123;</div><div class="line">    // If we found an already-allocated or pooled connection, we&apos;re done.</div><div class="line">    // 已经找到可用的连接，直接返回</div><div class="line">    return result;</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  // If we need a route selection, make one. This is a blocking operation.</div><div class="line">  boolean newRouteSelection = false;</div><div class="line">  if (selectedRoute == null &amp;&amp; (routeSelection == null || !routeSelection.hasNext())) &#123;</div><div class="line">    newRouteSelection = true;</div><div class="line">    routeSelection = routeSelector.next();</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  synchronized (connectionPool) &#123;</div><div class="line">    if (canceled) throw new IOException(&quot;Canceled&quot;);</div><div class="line"></div><div class="line">    if (newRouteSelection) &#123;</div><div class="line">      // Now that we have a set of IP addresses, make another attempt at getting a connection from</div><div class="line">      // the pool. This could match due to connection coalescing.</div><div class="line">      List&lt;Route&gt; routes = routeSelection.getAll();</div><div class="line">      for (int i = 0, size = routes.size(); i &lt; size; i++) &#123;</div><div class="line">        Route route = routes.get(i);</div><div class="line">        Internal.instance.get(connectionPool, address, this, route);</div><div class="line">        if (connection != null) &#123;</div><div class="line">          foundPooledConnection = true;</div><div class="line">          result = connection;</div><div class="line">          this.route = route;</div><div class="line">          break;</div><div class="line">        &#125;</div><div class="line">      &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    if (!foundPooledConnection) &#123;</div><div class="line">      if (selectedRoute == null) &#123;</div><div class="line">        selectedRoute = routeSelection.next();</div><div class="line">      &#125;</div><div class="line"></div><div class="line">      // Create a connection and assign it to this allocation immediately. This makes it possible</div><div class="line">      // for an asynchronous cancel() to interrupt the handshake we&apos;re about to do.</div><div class="line">      route = selectedRoute;</div><div class="line">      refusedStreamCount = 0;</div><div class="line">      result = new RealConnection(connectionPool, selectedRoute);</div><div class="line">      acquire(result, false);</div><div class="line">    &#125;</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  // If we found a pooled connection on the 2nd time around, we&apos;re done.</div><div class="line">  // 如果第二次在连接池中找到了连接，则直接返回</div><div class="line">  if (foundPooledConnection) &#123;</div><div class="line">    eventListener.connectionAcquired(call, result);</div><div class="line">    return result;</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  // Do TCP + TLS handshakes. This is a blocking operation.</div><div class="line">  // TCP 连接、TLS 握手</div><div class="line">  result.connect(</div><div class="line">      connectTimeout, readTimeout, writeTimeout, connectionRetryEnabled, call, eventListener);</div><div class="line">  routeDatabase().connected(result.route());</div><div class="line"></div><div class="line">  Socket socket = null;</div><div class="line">  synchronized (connectionPool) &#123;</div><div class="line">    reportedAcquired = true;</div><div class="line"></div><div class="line">    // Pool the connection.</div><div class="line">    // 把连接放进连接池</div><div class="line">    Internal.instance.put(connectionPool, result);</div><div class="line"></div><div class="line">    // If another multiplexed connection to the same address was created concurrently, then</div><div class="line">    // release this connection and acquire that one.</div><div class="line">    if (result.isMultiplexed()) &#123;</div><div class="line">      socket = Internal.instance.deduplicate(connectionPool, address, this);</div><div class="line">      result = connection;</div><div class="line">    &#125;</div><div class="line">  &#125;</div><div class="line">  closeQuietly(socket);</div><div class="line"></div><div class="line">  eventListener.connectionAcquired(call, result);</div><div class="line">  return result;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-
-          
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/01/04/glide流程/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="DaQiang">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="https://raw.githubusercontent.com/2227056071/imges/master/phone.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Hexo">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/2021/01/04/glide流程/" itemprop="url">
-                  Glide源码解析
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-01-04T00:00:00+08:00">
-                2021-01-04
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-              <span class="post-comments-count">
-                <span class="post-meta-divider">|</span>
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-comment-o"></i>
-                </span>
-                <a href="/2021/01/04/glide流程/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2021/01/04/glide流程/" itemprop="commentCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-          
-             <span id="/2021/01/04/glide流程/" class="leancloud_visitors" data-flag-title="Glide源码解析">
-               <span class="post-meta-divider">|</span>
-               <span class="post-meta-item-icon">
-                 <i class="fa fa-eye"></i>
-               </span>
-               
-                 <span class="post-meta-item-text">阅读次数 </span>
-               
-                 <span class="leancloud-visitors-count"></span>
-             </span>
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h2 id="glide"><a href="#glide" class="headerlink" title="glide"></a>glide</h2><h3 id="为什么选择-glide-框架？"><a href="#为什么选择-glide-框架？" class="headerlink" title="为什么选择 glide 框架？"></a>为什么选择 glide 框架？</h3><h4 id="Picasso-框架"><a href="#Picasso-框架" class="headerlink" title="Picasso 框架"></a>Picasso 框架</h4><p>已无人维护。直接 pass 掉。</p>
-<h4 id="fresco-框架"><a href="#fresco-框架" class="headerlink" title="fresco 框架"></a>fresco 框架</h4><p>用法较复杂，不如 glide 的用法简洁。优势是能大大减少 OOM 的概率，因为图片不在放在 Java Heap 中，而是放在 Ashmem(匿名共享内存)中。适用于高性能加载大量图片的场景。sdk 大小为 500 kb.</p>
-<h4 id="glide-框架"><a href="#glide-框架" class="headerlink" title="glide 框架"></a>glide 框架</h4><p>sdk大小 440 Kb，在可以接受的范围内。适合图片加载量不大的 app 使用。从网络加载速度和加载本地缓存的速度很快。android 官方也推荐使用。</p>
-<p>程序整体架构如图:</p>
-<p><img src="https://raw.githubusercontent.com/JsonChao/Awesome-Third-Library-Source-Analysis/master/ScreenShots/Glide%E6%A1%86%E6%9E%B6%E5%9B%BE.jpg" alt="架构图"></p>
-<p>Glide为单例类。</p>
-<ol>
-<li><p>Glide.with(this) 会创建 RequestManager ，RequestManager 是 Request 的管理类，根据activity或者fragment生命周期的变化对请求做不同的处理。具体流程如下：在参数 activity 上面创建一个隐藏的 RequestManagerFragment，该fragment用于同步activity生命周期的变化,具体方法是利用ActivityFragmentLifecycle类将生命周期的变化回调给RequestManager。</p>
-<p>一个 activity 对应一个 FragmentManager，FragmentManager 对应一个透明的 RequestManagerFragment，RequestManagerFragment 对应一个 RequestManager。所以一个 activity 对应一个 RequestManager 实例 。</p>
-</li>
-<li><p>Glide.with(this).load(url)会创建RequestBuilder。RequestBuilder用来配置请求、加载图片</p>
-</li>
-<li><p>Glide.with(this).load(url).into(imageview):</p>
-<p>buildRequest 方法构建请求返回 request 对象;</p>
-<p>requestManager.track(target, request) 方法里会调用 requestTracker.runRequest(request) 方法，从而执行 request 的 begin() 方法,begin 方法里会判断请求的状态并做不同的处理。当view的大小确定以后，会执行onSizeReady方法，重点看onSizeReady里的engine.load()方法：</p>
-<p>​    从 ActiveResources 里获取缓存(ActiveResources 保存弱引用的集合),生命周期短、没有大小限制;</p>
-<p>​    从MemoryCache里获取缓存，使用 LRU 算法保证内存不超过限定值；</p>
-<p>​    使用 engineJob 启动 decodeJob,run方法里调用 dataFetcher 的 loadData方法加载数据(从网络、本地加载)，获取完成后使用 Encoder 将数据存入磁盘缓存文件中（sourceGenerator），同时使用对应的解码器将原始数据转换为相应的资源文件.</p>
-<p>当资源加载完成时，会执行 SingleRequest类 的 onResourceReady 方法。依次跟下去会执行 target.onResourceReady 方法:</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">target.onResourceReady(result, animation)</div></pre></td></tr></table></figure>
-<p>onResourceReady 方法有多种实现，以 ImageViewTarget 类的实现为例:</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">public void onResourceReady(@NonNull Z resource, @Nullable Transition&lt;? super Z&gt; transition) &#123;</div><div class="line">  if (transition == null || !transition.transition(resource, this)) &#123;</div><div class="line">    setResourceInternal(resource);</div><div class="line">  &#125; else &#123;</div><div class="line">    maybeUpdateAnimatable(resource);</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>进入 setResourceInternal 方法，发现其调用了一个抽象方法 setResource:</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">protected abstract void setResource(@Nullable Z resource);</div></pre></td></tr></table></figure>
-<p>setResource 方法也有多个实现。看一下 BitmapImageViewTarget 类的实现:</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">protected void setResource(Bitmap resource) &#123;</div><div class="line">   view.setImageBitmap(resource);</div><div class="line"> &#125;</div></pre></td></tr></table></figure>
-<p>可以看到，上面这行代码调用 android 系统 API  把图片资源设置给 view 以完成显示工作。</p>
-</li>
-</ol>
-
-          
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/01/04/Glide源码解析之缓存/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="DaQiang">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="https://raw.githubusercontent.com/2227056071/imges/master/phone.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Hexo">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/2021/01/04/Glide源码解析之缓存/" itemprop="url">
-                  Glide源码解析之缓存
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-01-04T00:00:00+08:00">
-                2021-01-04
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-              <span class="post-comments-count">
-                <span class="post-meta-divider">|</span>
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-comment-o"></i>
-                </span>
-                <a href="/2021/01/04/Glide源码解析之缓存/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2021/01/04/Glide源码解析之缓存/" itemprop="commentCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-          
-             <span id="/2021/01/04/Glide源码解析之缓存/" class="leancloud_visitors" data-flag-title="Glide源码解析之缓存">
-               <span class="post-meta-divider">|</span>
-               <span class="post-meta-item-icon">
-                 <i class="fa fa-eye"></i>
-               </span>
-               
-                 <span class="post-meta-item-text">阅读次数 </span>
-               
-                 <span class="leancloud-visitors-count"></span>
-             </span>
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="Glide源码解析之缓存"><a href="#Glide源码解析之缓存" class="headerlink" title="Glide源码解析之缓存"></a>Glide源码解析之缓存</h1><p>Glide缓存机制分为内存缓存和硬盘缓存。内存缓存的目的是避免重复加载图片到内存、提升加载速度；硬盘缓存的目的是避免重复从网络下载图片造成流量的浪费、同时提升加载速度</p>
-<h2 id="读取内存缓存"><a href="#读取内存缓存" class="headerlink" title="读取内存缓存"></a>读取内存缓存</h2><p>读取内存缓存的地方是在 Engine#load 方法里:</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">//读取内存中缓存的图片</div><div class="line">memoryResource = loadFromMemory(key, isMemoryCacheable, startTime);</div></pre></td></tr></table></figure>
-<p>进入 loadFromMemory 方法：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">if (!isMemoryCacheable) &#123;</div><div class="line">		//禁用内存缓存则返回空</div><div class="line">    return null;</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  EngineResource&lt;?&gt; active = loadFromActiveResources(key);</div><div class="line">  if (active != null) &#123;</div><div class="line">    //要加载的图片正在被使用(即该图片是active的),可直接使用该图片</div><div class="line">    return active;</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  EngineResource&lt;?&gt; cached = loadFromCache(key);</div><div class="line">  if (cached != null) &#123;</div><div class="line">   	//该图片缓存在LRU内存里</div><div class="line">    return cached;</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
-<p>内存缓存也分两级。先看 activeResources 是否存在，activeResources使用一个集合保存着图片的弱引用</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">//该集合保存着图片的弱引用，Key代表图片的key</div><div class="line">Map&lt;Key, ResourceWeakReference&gt; activeEngineResources = new HashMap&lt;&gt;();</div></pre></td></tr></table></figure>
-<p>如果存在的话，该图片资源EngineResource的引用次数acquired会加1。如果不存在的话则接着去内存中找：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">private EngineResource&lt;?&gt; getEngineResourceFromCache(Key key) &#123;</div><div class="line">		//从内存中读取缓存，cache 的类型是 MemoryCache</div><div class="line">    Resource&lt;?&gt; cached = cache.remove(key);</div><div class="line">    final EngineResource&lt;?&gt; result;</div><div class="line">    if (cached == null) &#123;</div><div class="line">      result = null;</div><div class="line">    &#125; else if (cached instanceof EngineResource) &#123;</div><div class="line">      result = (EngineResource&lt;?&gt;) cached;</div><div class="line">    &#125; else &#123;</div><div class="line">      result =</div><div class="line">          new EngineResource&lt;&gt;(</div><div class="line">              cached, /*isMemoryCacheable=*/ true, /*isRecyclable=*/ true, key, /*listener=*/ this);</div><div class="line">    &#125;</div><div class="line">    return result;</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
-<p>MemoryCache 是个接口。MemoryCache有两个实现类 LruResourceCache 和 MemoryCacheAdapter(低版本适配)。重点看一下LruResourceCache类。它继承了 LruCache 类,LruCache 类里使用 LinkedHashMap 来保存最近使用的图片:</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">private final Map&lt;T, Entry&lt;Y&gt;&gt; cache = new LinkedHashMap&lt;&gt;(100, 0.75f, true);</div></pre></td></tr></table></figure>
-<p>LinkedHashMap类是java自带的类，实现了LRU缓存(LRU是最近最少使用算法)，可以设置一个内存的阈值，当内存超过该阈值时会移除掉最老的缓存。LinkedHashMap实现LRU算法的原理可参考 <a href="图解LinkedHashMap原理">https://www.jianshu.com/p/8f4f58b4b8ab</a></p>
-<h2 id="读取硬盘缓存"><a href="#读取硬盘缓存" class="headerlink" title="读取硬盘缓存"></a>读取硬盘缓存</h2><p>硬盘缓存也分为两种情况，一种是缓存原始图片，一种是缓存转换后的图片。</p>
-<p>读取原始图片缓存的代码是在 DataCacheGenerator 类的 startNext 方法里:</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">cacheFile = helper.getDiskCache().get(originalKey);</div></pre></td></tr></table></figure>
-<p>helper.getDiskCache()获取到DiskCache对象，DiskCache 是接口类，DiskCache默认的实现类是 DiskLruCacheWrapper，看一下它的 get 方法:</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">//计算key的sha256值</div><div class="line">String safeKey = safeKeyGenerator.getSafeKey(key);</div><div class="line"> File result = null;</div><div class="line"> try &#123;</div><div class="line"> //获取缓存值</div><div class="line">   final DiskLruCache.Value value = getDiskCache().get(safeKey);</div><div class="line">   if (value != null) &#123;</div><div class="line">     result = value.getFile(0);</div><div class="line">   &#125;</div><div class="line"> &#125; catch (IOException e) &#123;</div><div class="line"> ...</div><div class="line"> &#125;</div><div class="line"> return result;</div></pre></td></tr></table></figure>
-<p>细看这一行代码:</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">final DiskLruCache.Value value = getDiskCache().get(safeKey)</div></pre></td></tr></table></figure>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div></pre></td><td class="code"><pre><div class="line">Entry entry = lruEntries.get(key);</div><div class="line">if (entry == null) &#123;</div><div class="line">  return null;</div><div class="line">&#125;</div><div class="line"></div><div class="line">if (!entry.readable) &#123;</div><div class="line">  return null;</div><div class="line">&#125;</div><div class="line"></div><div class="line">for (File file : entry.cleanFiles) &#123;</div><div class="line">    // A file must have been deleted manually!</div><div class="line">    if (!file.exists()) &#123;</div><div class="line">        return null;</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line">redundantOpCount++;</div><div class="line">journalWriter.append(READ);</div><div class="line">journalWriter.append(&apos; &apos;);</div><div class="line">journalWriter.append(key);</div><div class="line">journalWriter.append(&apos;\n&apos;);</div><div class="line">if (journalRebuildRequired()) &#123;</div><div class="line">  executorService.submit(cleanupCallable);</div><div class="line">&#125;</div><div class="line">return new Value(key, entry.sequenceNumber, entry.cleanFiles, entry.lengths);</div></pre></td></tr></table></figure>
-<p>lruEntries的类型也是LinkedHashMap,可知硬盘缓存也遵循LRU算法以避免磁盘缓存的文件过大。</p>
-<h2 id="写入内存缓存"><a href="#写入内存缓存" class="headerlink" title="写入内存缓存"></a>写入内存缓存</h2><h3 id="写入弱引用缓存分为两种情况"><a href="#写入弱引用缓存分为两种情况" class="headerlink" title="写入弱引用缓存分为两种情况:"></a>写入弱引用缓存分为两种情况:</h3><ol>
-<li><p>一种是从内存强引用LRU读取缓存后，把对应的图片从LRU移除的同时会把该图片加入到弱引用集合中。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">private EngineResource&lt;?&gt; loadFromCache(Key key) &#123;</div><div class="line">   EngineResource&lt;?&gt; cached = getEngineResourceFromCache(key);</div><div class="line">   if (cached != null) &#123;</div><div class="line">   //把该图片加入到弱引用集合,图片的引用计数加1</div><div class="line">     cached.acquire();</div><div class="line">     activeResources.activate(key, cached);</div><div class="line">   &#125;</div><div class="line">   return cached;</div><div class="line"> &#125;</div></pre></td></tr></table></figure>
-</li>
-<li><p>另一种情况是当首次加载图片的任务完成之后把该图片加入到弱引用集合中。如下:</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">public synchronized void onEngineJobComplete(</div><div class="line">    EngineJob&lt;?&gt; engineJob, Key key, EngineResource&lt;?&gt; resource) &#123;</div><div class="line">  //把图片加入到弱引用集合</div><div class="line">  if (resource != null &amp;&amp; resource.isMemoryCacheable()) &#123;</div><div class="line">    activeResources.activate(key, resource);</div><div class="line">  &#125;</div><div class="line">...</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-</li>
-</ol>
-<h3 id="写入LRU缓存"><a href="#写入LRU缓存" class="headerlink" title="写入LRU缓存"></a>写入LRU缓存</h3><p>写入LRU缓存是在 Engine 类的 onResourceReleased 方法中:</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">cache.put(cacheKey, resource);</div></pre></td></tr></table></figure>
-<p>对于 onResourceReleased 方法的调用时机，分为两种情况:</p>
-<p>一种是图片的引用计数次数变为 0 的时候会调用，具体代码位置在 EngineResource 类的 release 方法中:</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">void release() &#123;</div><div class="line">	...</div><div class="line">  if (release) &#123;</div><div class="line">  //图片的引用计数次数变为 0 的时候会调用 onResourceReleased 方法</div><div class="line">    listener.onResourceReleased(key, this);</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>另一种情况是当ResourceWeakReference弱引用的对象被 gc 回收后调用 cleanupActiveReference 方法，cleanupActiveReference 同样会调用 onResourceReleased 方法:</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">void cleanupActiveReference(@NonNull ResourceWeakReference ref) &#123;</div><div class="line">    synchronized (this) &#123;</div><div class="line">    	//图片被 gc 回收后移除 activeEngineResources 中对应的图片key</div><div class="line">      activeEngineResources.remove(ref.key);</div><div class="line">      if (!ref.isCacheable || ref.resource == null) &#123;</div><div class="line">        return;</div><div class="line">      &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    EngineResource&lt;?&gt; newResource =</div><div class="line">        new EngineResource&lt;&gt;(</div><div class="line">            ref.resource, /*isMemoryCacheable=*/ true, /*isRecyclable=*/ false, ref.key, listener);</div><div class="line">    //图片被 gc 回收掉后，创建一个新的图片资源 newResource，放到LRU内存中</div><div class="line">    listener.onResourceReleased(ref.key, newResource);</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
-<h2 id="写入硬盘缓存"><a href="#写入硬盘缓存" class="headerlink" title="写入硬盘缓存"></a>写入硬盘缓存</h2><p>一处是在DecodeJob 类中，当图片数据获取完成之后，会先解码再进行编码，onDataFetcherReady -&gt; decodeFromRetrievedData -&gt; notifyEncodeAndRelease 中：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">if (deferredEncodeManager.hasResourceToEncode()) &#123;</div><div class="line">	//调用encode方法把图片写入磁盘</div><div class="line">  deferredEncodeManager.encode(diskCacheProvider, options);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>encode方法具体实现如下:</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">void encode(DiskCacheProvider diskCacheProvider, Options options) &#123;</div><div class="line">      try &#123;</div><div class="line">      //把图片写入磁盘</div><div class="line">        diskCacheProvider</div><div class="line">            .getDiskCache()</div><div class="line">            .put(key, new DataCacheWriter&lt;&gt;(encoder, toEncode, options));</div><div class="line">      &#125; finally &#123;</div><div class="line">        toEncode.unlock();</div><div class="line">      &#125;</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
-<p>另一处是在SourceGenerator类中，</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"> public boolean startNext() &#123;</div><div class="line"> 		//缓存原始未修改的图片</div><div class="line">    if (dataToCache != null) &#123;</div><div class="line">      Object data = dataToCache;</div><div class="line">      dataToCache = null;</div><div class="line">      cacheData(data);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>进入 cacheData 方法中：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">private void cacheData(Object dataToCache) &#123;</div><div class="line">    try &#123;</div><div class="line">      Encoder&lt;Object&gt; encoder = helper.getSourceEncoder(dataToCache);</div><div class="line">      DataCacheWriter&lt;Object&gt; writer =</div><div class="line">          new DataCacheWriter&lt;&gt;(encoder, dataToCache, helper.getOptions());</div><div class="line">      originalKey = new DataCacheKey(loadData.sourceKey, helper.getSignature());</div><div class="line">      //把图片写入磁盘</div><div class="line">      helper.getDiskCache().put(originalKey, writer);</div><div class="line">    &#125; finally &#123;</div><div class="line">      loadData.fetcher.cleanup();</div><div class="line">    &#125;</div><div class="line">		...</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
-<h3 id="BitmapPool"><a href="#BitmapPool" class="headerlink" title="BitmapPool"></a>BitmapPool</h3><p>bitmap 的内存管理是一个很重要的话题。glide 使用了 BitmapPool 来提升 bitmap 的复用，减少 bitmap 分配内存和回收内存的次数，从而减少 GC 的频率、应用运行更加流畅。</p>
-<p>Android 官方提供 inBitmap 的 api 来复用 bitmap.实例如下:</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">if (cache != null) &#123;</div><div class="line">    // Try to find a bitmap to use for inBitmap.</div><div class="line">    Bitmap inBitmap = cache.getBitmapFromReusableSet(options);</div><div class="line"></div><div class="line">    if (inBitmap != null) &#123;</div><div class="line">        // If a suitable bitmap has been found, set it as the value of</div><div class="line">        // inBitmap.</div><div class="line">        options.inBitmap = inBitmap;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>BitmapPool 有两个实现类: LruBitmapPool 和 BitmapPoolAdapter 类.BitmapPoolAdapter 的实现是一个空壳子，重点看一下 LruBitmapPool 类。LruBitmapPool 提供了 put 和 get 方法来操作 bitmap。LruBitmapPool 实际上是通过 LruPoolStrategy 对象来实现存取的。LruPoolStrategy 有多个实现类，不同的系统版本会使用不同的实现类:</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">if (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.KITKAT) &#123;</div><div class="line">//android 4.4 版本以上</div><div class="line">     strategy = new SizeConfigStrategy();</div><div class="line">   &#125; else &#123;</div><div class="line">     strategy = new AttributeStrategy();</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
-<p>因为目前大多数 app 的最低系统版本在 4.4 以上了，所以 重点看一下 SizeConfigStrategy ，先看 put 方法:</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">public void put(Bitmap bitmap) &#123;</div><div class="line">	//获取图片所占内存的字节数</div><div class="line">  int size = Util.getBitmapByteSize(bitmap);</div><div class="line">  //key由size和Bitmap.Config组成</div><div class="line">  Key key = keyPool.get(size, bitmap.getConfig());</div><div class="line"></div><div class="line">//groupedMap的类型是 GroupedLinkedMap，类似 LinkedHashMap ，支持 LRU 算法。</div><div class="line">  groupedMap.put(key, bitmap);</div><div class="line"></div><div class="line">  NavigableMap&lt;Integer, Integer&gt; sizes = getSizesForConfig(bitmap.getConfig());</div><div class="line">  Integer current = sizes.get(key.size);</div><div class="line">  //记录该尺寸的图片的数量</div><div class="line">  sizes.put(key.size, current == null ? 1 : current + 1);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>GroupedLinkedMap 为 glide 自定义的数据结构，支持 LRU 算法，与 LinkedHashMap 类似。不同的是，LinkedHashMap 的 LRU 是针对的 value 值，而 GroupedLinkedMap 是针对的 key 值即图片的 size、而不是bitmap。</p>
-<p>接下来看一下 get 方法:</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">public Bitmap get(int width, int height, Bitmap.Config config) &#123;</div><div class="line">  int size = Util.getBitmapByteSize(width, height, config);</div><div class="line">  //这行代码很关键。找到最接近目标值缓存图片的key</div><div class="line">  Key bestKey = findBestKey(size, config);</div><div class="line"></div><div class="line">  Bitmap result = groupedMap.get(bestKey);</div><div class="line">  if (result != null) &#123;</div><div class="line">    // Decrement must be called before reconfigure.</div><div class="line">    decrementBitmapOfSize(bestKey.size, result);</div><div class="line">    result.reconfigure(width, height, config);</div><div class="line">  &#125;</div><div class="line">  return result;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>findBestKey 方法实现如下:</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line">private Key findBestKey(int size, Bitmap.Config config) &#123;</div><div class="line">   Key result = keyPool.get(size, config);</div><div class="line">   for (Bitmap.Config possibleConfig : getInConfigs(config)) &#123;</div><div class="line">     NavigableMap&lt;Integer, Integer&gt; sizesForPossibleConfig = getSizesForConfig(possibleConfig);</div><div class="line">     //返回大于等于size的最小值。</div><div class="line">     Integer possibleSize = sizesForPossibleConfig.ceilingKey(size);</div><div class="line">     //如果返回的缓存大小超过了目标值的 8 倍，缓存的使用率变低、就没必要复用缓存了</div><div class="line">     if (possibleSize != null &amp;&amp; possibleSize &lt;= size * MAX_SIZE_MULTIPLE) &#123;</div><div class="line">       if (possibleSize != size</div><div class="line">           || (possibleConfig == null ? config != null : !possibleConfig.equals(config))) &#123;</div><div class="line">         keyPool.offer(result);</div><div class="line">         result = keyPool.get(possibleSize, possibleConfig);</div><div class="line">       &#125;</div><div class="line">       break;</div><div class="line">     &#125;</div><div class="line">   &#125;</div><div class="line">   return result;</div><div class="line"> &#125;</div></pre></td></tr></table></figure>
-<h3 id="ArrayPool"><a href="#ArrayPool" class="headerlink" title="ArrayPool"></a>ArrayPool</h3><p>作用与 bitmapPool 类似，也是复用数组以减少内存的分配和回收，从而减少 GC 的频率、应用运行更加流畅。</p>
+            <p>连接建立完成之后就要发送数据了，发送、接收数据靠 CallServerInterceptor 完成.</p>
+<p>流程大概分为 4 步:</p>
+<p>写入请求头、写入请求体、读取响应头、读取响应体，由 HttpCodec 来完成这几步操作。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div></pre></td><td class="code"><pre><div class="line">@Override public Response intercept(Chain chain) throws IOException &#123;</div><div class="line">  RealInterceptorChain realChain = (RealInterceptorChain) chain;</div><div class="line">  HttpCodec httpCodec = realChain.httpStream();</div><div class="line">  StreamAllocation streamAllocation = realChain.streamAllocation();</div><div class="line">  RealConnection connection = (RealConnection) realChain.connection();</div><div class="line">  Request request = realChain.request();</div><div class="line"></div><div class="line">  long sentRequestMillis = System.currentTimeMillis();</div><div class="line"></div><div class="line">  realChain.eventListener().requestHeadersStart(realChain.call());</div><div class="line">  // 写入请求头</div><div class="line">  httpCodec.writeRequestHeaders(request);</div><div class="line">  realChain.eventListener().requestHeadersEnd(realChain.call(), request);</div><div class="line"></div><div class="line">  Response.Builder responseBuilder = null;</div><div class="line">  if (HttpMethod.permitsRequestBody(request.method()) &amp;&amp; request.body() != null) &#123;</div><div class="line">    // If there&apos;s a &quot;Expect: 100-continue&quot; header on the request, wait for a &quot;HTTP/1.1 100</div><div class="line">    // Continue&quot; response before transmitting the request body. If we don&apos;t get that, return</div><div class="line">    // what we did get (such as a 4xx response) without ever transmitting the request body.</div><div class="line">    if (&quot;100-continue&quot;.equalsIgnoreCase(request.header(&quot;Expect&quot;))) &#123;</div><div class="line">      httpCodec.flushRequest();</div><div class="line">      realChain.eventListener().responseHeadersStart(realChain.call());</div><div class="line">      responseBuilder = httpCodec.readResponseHeaders(true);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    if (responseBuilder == null) &#123;</div><div class="line">      // Write the request body if the &quot;Expect: 100-continue&quot; expectation was met.</div><div class="line">      realChain.eventListener().requestBodyStart(realChain.call());</div><div class="line">      long contentLength = request.body().contentLength();</div><div class="line">      // 写入请求体</div><div class="line">      CountingSink requestBodyOut =</div><div class="line">          new CountingSink(httpCodec.createRequestBody(request, contentLength));</div><div class="line">      BufferedSink bufferedRequestBody = Okio.buffer(requestBodyOut);</div><div class="line"></div><div class="line">      request.body().writeTo(bufferedRequestBody);</div><div class="line">      bufferedRequestBody.close();</div><div class="line">      realChain.eventListener()</div><div class="line">          .requestBodyEnd(realChain.call(), requestBodyOut.successfulCount);</div><div class="line">    &#125; else if (!connection.isMultiplexed()) &#123;</div><div class="line">      // If the &quot;Expect: 100-continue&quot; expectation wasn&apos;t met, prevent the HTTP/1 connection</div><div class="line">      // from being reused. Otherwise we&apos;re still obligated to transmit the request body to</div><div class="line">      // leave the connection in a consistent state.</div><div class="line">      streamAllocation.noNewStreams();</div><div class="line">    &#125;</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  httpCodec.finishRequest();</div><div class="line"></div><div class="line">	// 读取响应头</div><div class="line">  if (responseBuilder == null) &#123;</div><div class="line">    realChain.eventListener().responseHeadersStart(realChain.call());</div><div class="line">    responseBuilder = httpCodec.readResponseHeaders(false);</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  Response response = responseBuilder</div><div class="line">      .request(request)</div><div class="line">      .handshake(streamAllocation.connection().handshake())</div><div class="line">      .sentRequestAtMillis(sentRequestMillis)</div><div class="line">      .receivedResponseAtMillis(System.currentTimeMillis())</div><div class="line">      .build();</div><div class="line"></div><div class="line">  realChain.eventListener()</div><div class="line">      .responseHeadersEnd(realChain.call(), response);</div><div class="line"></div><div class="line">	// 读取响应体</div><div class="line">  int code = response.code();</div><div class="line">  if (forWebSocket &amp;&amp; code == 101) &#123;</div><div class="line">    // Connection is upgrading, but we need to ensure interceptors see a non-null response body.</div><div class="line">    response = response.newBuilder()</div><div class="line">        .body(Util.EMPTY_RESPONSE)</div><div class="line">        .build();</div><div class="line">  &#125; else &#123;</div><div class="line">    response = response.newBuilder()</div><div class="line">        .body(httpCodec.openResponseBody(response))</div><div class="line">        .build();</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  if (&quot;close&quot;.equalsIgnoreCase(response.request().header(&quot;Connection&quot;))</div><div class="line">      || &quot;close&quot;.equalsIgnoreCase(response.header(&quot;Connection&quot;))) &#123;</div><div class="line">    streamAllocation.noNewStreams();</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  if ((code == 204 || code == 205) &amp;&amp; response.body().contentLength() &gt; 0) &#123;</div><div class="line">    throw new ProtocolException(</div><div class="line">        &quot;HTTP &quot; + code + &quot; had non-zero Content-Length: &quot; + response.body().contentLength());</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  return response;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>最后看一下整体的流程图:</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/5713484-35a9989e893171f1.png" alt="流程图"></p>
 
           
         
@@ -1220,7 +704,7 @@
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/01/04/CallServerInterceptor分析/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/01/04/ConnectInterceptor解析/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="DaQiang">
@@ -1242,8 +726,8 @@
             
               
                 
-                <a class="post-title-link" href="/2021/01/04/CallServerInterceptor分析/" itemprop="url">
-                  OKHttp拦截器CallServerInterceptor分析
+                <a class="post-title-link" href="/2021/01/04/ConnectInterceptor解析/" itemprop="url">
+                  OKHttp拦截器之ConnectInterceptor分析
                 </a>
               
             
@@ -1278,9 +762,9 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2021/01/04/CallServerInterceptor分析/#comments" itemprop="discussionUrl">
+                <a href="/2021/01/04/ConnectInterceptor解析/#comments" itemprop="discussionUrl">
                   <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2021/01/04/CallServerInterceptor分析/" itemprop="commentCount"></span>
+                        data-disqus-identifier="2021/01/04/ConnectInterceptor解析/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -1288,7 +772,7 @@
 
           
           
-             <span id="/2021/01/04/CallServerInterceptor分析/" class="leancloud_visitors" data-flag-title="OKHttp拦截器CallServerInterceptor分析">
+             <span id="/2021/01/04/ConnectInterceptor解析/" class="leancloud_visitors" data-flag-title="OKHttp拦截器之ConnectInterceptor分析">
                <span class="post-meta-divider">|</span>
                <span class="post-meta-item-icon">
                  <i class="fa fa-eye"></i>
@@ -1319,12 +803,528 @@
       
         
           
-            <p>连接建立完成之后就要发送数据了，发送、接收数据靠 CallServerInterceptor 完成.</p>
-<p>流程大概分为 4 步:</p>
-<p>写入请求头、写入请求体、读取响应头、读取响应体，由 HttpCodec 来完成这几步操作。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div></pre></td><td class="code"><pre><div class="line">@Override public Response intercept(Chain chain) throws IOException &#123;</div><div class="line">  RealInterceptorChain realChain = (RealInterceptorChain) chain;</div><div class="line">  HttpCodec httpCodec = realChain.httpStream();</div><div class="line">  StreamAllocation streamAllocation = realChain.streamAllocation();</div><div class="line">  RealConnection connection = (RealConnection) realChain.connection();</div><div class="line">  Request request = realChain.request();</div><div class="line"></div><div class="line">  long sentRequestMillis = System.currentTimeMillis();</div><div class="line"></div><div class="line">  realChain.eventListener().requestHeadersStart(realChain.call());</div><div class="line">  // 写入请求头</div><div class="line">  httpCodec.writeRequestHeaders(request);</div><div class="line">  realChain.eventListener().requestHeadersEnd(realChain.call(), request);</div><div class="line"></div><div class="line">  Response.Builder responseBuilder = null;</div><div class="line">  if (HttpMethod.permitsRequestBody(request.method()) &amp;&amp; request.body() != null) &#123;</div><div class="line">    // If there&apos;s a &quot;Expect: 100-continue&quot; header on the request, wait for a &quot;HTTP/1.1 100</div><div class="line">    // Continue&quot; response before transmitting the request body. If we don&apos;t get that, return</div><div class="line">    // what we did get (such as a 4xx response) without ever transmitting the request body.</div><div class="line">    if (&quot;100-continue&quot;.equalsIgnoreCase(request.header(&quot;Expect&quot;))) &#123;</div><div class="line">      httpCodec.flushRequest();</div><div class="line">      realChain.eventListener().responseHeadersStart(realChain.call());</div><div class="line">      responseBuilder = httpCodec.readResponseHeaders(true);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    if (responseBuilder == null) &#123;</div><div class="line">      // Write the request body if the &quot;Expect: 100-continue&quot; expectation was met.</div><div class="line">      realChain.eventListener().requestBodyStart(realChain.call());</div><div class="line">      long contentLength = request.body().contentLength();</div><div class="line">      // 写入请求体</div><div class="line">      CountingSink requestBodyOut =</div><div class="line">          new CountingSink(httpCodec.createRequestBody(request, contentLength));</div><div class="line">      BufferedSink bufferedRequestBody = Okio.buffer(requestBodyOut);</div><div class="line"></div><div class="line">      request.body().writeTo(bufferedRequestBody);</div><div class="line">      bufferedRequestBody.close();</div><div class="line">      realChain.eventListener()</div><div class="line">          .requestBodyEnd(realChain.call(), requestBodyOut.successfulCount);</div><div class="line">    &#125; else if (!connection.isMultiplexed()) &#123;</div><div class="line">      // If the &quot;Expect: 100-continue&quot; expectation wasn&apos;t met, prevent the HTTP/1 connection</div><div class="line">      // from being reused. Otherwise we&apos;re still obligated to transmit the request body to</div><div class="line">      // leave the connection in a consistent state.</div><div class="line">      streamAllocation.noNewStreams();</div><div class="line">    &#125;</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  httpCodec.finishRequest();</div><div class="line"></div><div class="line">	// 读取响应头</div><div class="line">  if (responseBuilder == null) &#123;</div><div class="line">    realChain.eventListener().responseHeadersStart(realChain.call());</div><div class="line">    responseBuilder = httpCodec.readResponseHeaders(false);</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  Response response = responseBuilder</div><div class="line">      .request(request)</div><div class="line">      .handshake(streamAllocation.connection().handshake())</div><div class="line">      .sentRequestAtMillis(sentRequestMillis)</div><div class="line">      .receivedResponseAtMillis(System.currentTimeMillis())</div><div class="line">      .build();</div><div class="line"></div><div class="line">  realChain.eventListener()</div><div class="line">      .responseHeadersEnd(realChain.call(), response);</div><div class="line"></div><div class="line">	// 读取响应体</div><div class="line">  int code = response.code();</div><div class="line">  if (forWebSocket &amp;&amp; code == 101) &#123;</div><div class="line">    // Connection is upgrading, but we need to ensure interceptors see a non-null response body.</div><div class="line">    response = response.newBuilder()</div><div class="line">        .body(Util.EMPTY_RESPONSE)</div><div class="line">        .build();</div><div class="line">  &#125; else &#123;</div><div class="line">    response = response.newBuilder()</div><div class="line">        .body(httpCodec.openResponseBody(response))</div><div class="line">        .build();</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  if (&quot;close&quot;.equalsIgnoreCase(response.request().header(&quot;Connection&quot;))</div><div class="line">      || &quot;close&quot;.equalsIgnoreCase(response.header(&quot;Connection&quot;))) &#123;</div><div class="line">    streamAllocation.noNewStreams();</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  if ((code == 204 || code == 205) &amp;&amp; response.body().contentLength() &gt; 0) &#123;</div><div class="line">    throw new ProtocolException(</div><div class="line">        &quot;HTTP &quot; + code + &quot; had non-zero Content-Length: &quot; + response.body().contentLength());</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  return response;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>最后看一下整体的流程图:</p>
-<p><img src="https://upload-images.jianshu.io/upload_images/5713484-35a9989e893171f1.png" alt="流程图"></p>
+            <p>ConnectInterceptor 拦截器的作用是同服务器建立连接并把连接传递给下一个拦截器。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">@Override public Response intercept(Chain chain) throws IOException &#123;</div><div class="line">  RealInterceptorChain realChain = (RealInterceptorChain) chain;</div><div class="line">  Request request = realChain.request();</div><div class="line">  StreamAllocation streamAllocation = realChain.streamAllocation();</div><div class="line"></div><div class="line">  // We need the network to satisfy this request. Possibly for validating a conditional GET.</div><div class="line">  boolean doExtensiveHealthChecks = !request.method().equals(&quot;GET&quot;);</div><div class="line">  HttpCodec httpCodec = streamAllocation.newStream(client, chain, doExtensiveHealthChecks);</div><div class="line">  RealConnection connection = streamAllocation.connection();</div><div class="line"></div><div class="line">  return realChain.proceed(request, streamAllocation, httpCodec, connection);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>看一下 streamAllocation.newStream -&gt; findHealthyConnection -&gt; findConnection 方法:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div><div class="line">105</div><div class="line">106</div><div class="line">107</div><div class="line">108</div><div class="line">109</div><div class="line">110</div><div class="line">111</div><div class="line">112</div><div class="line">113</div><div class="line">114</div><div class="line">115</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> * Returns a connection to host a new stream. This prefers the existing connection if it exists,</div><div class="line"> * then the pool, finally building a new connection.</div><div class="line"> */</div><div class="line">	// 优先复用已存在的连接、其次从连接池中获取、最后创建新的连接</div><div class="line">private RealConnection findConnection(int connectTimeout, int readTimeout, int writeTimeout,</div><div class="line">    boolean connectionRetryEnabled) throws IOException &#123;</div><div class="line">  boolean foundPooledConnection = false;</div><div class="line">  RealConnection result = null;</div><div class="line">  Route selectedRoute = null;</div><div class="line">  Connection releasedConnection;</div><div class="line">  Socket toClose;</div><div class="line">  synchronized (connectionPool) &#123;</div><div class="line">    releasedConnection = this.connection;</div><div class="line">    toClose = releaseIfNoNewStreams();</div><div class="line"></div><div class="line">    //连接已存在</div><div class="line">    if (this.connection != null) &#123;</div><div class="line">      // We had an already-allocated connection and it&apos;s good.</div><div class="line">      result = this.connection;</div><div class="line">      releasedConnection = null;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    if (result == null) &#123;</div><div class="line">      // Attempt to get a connection from the pool.</div><div class="line">      // 从连接池中获取连接。注意最后一个参数是 null，代表从连接池中获取完全匹配的连接(host和nonhost完全一致)</div><div class="line">      Internal.instance.get(connectionPool, address, this, null);</div><div class="line">      if (connection != null) &#123;</div><div class="line">        foundPooledConnection = true;</div><div class="line">        result = connection;</div><div class="line">      &#125; else &#123;</div><div class="line">        selectedRoute = route;</div><div class="line">      &#125;</div><div class="line">    &#125;</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  if (result != null) &#123;</div><div class="line">    // If we found an already-allocated or pooled connection, we&apos;re done.</div><div class="line">    // 已经找到可用的连接，直接返回</div><div class="line">    return result;</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  // If we need a route selection, make one. This is a blocking operation.</div><div class="line">  boolean newRouteSelection = false;</div><div class="line">  if (selectedRoute == null &amp;&amp; (routeSelection == null || !routeSelection.hasNext())) &#123;</div><div class="line">    newRouteSelection = true;</div><div class="line">    routeSelection = routeSelector.next();</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  synchronized (connectionPool) &#123;</div><div class="line">    if (canceled) throw new IOException(&quot;Canceled&quot;);</div><div class="line"></div><div class="line">    if (newRouteSelection) &#123;</div><div class="line">      // Now that we have a set of IP addresses, make another attempt at getting a connection from</div><div class="line">      // the pool. This could match due to connection coalescing.</div><div class="line">      List&lt;Route&gt; routes = routeSelection.getAll();</div><div class="line">      for (int i = 0, size = routes.size(); i &lt; size; i++) &#123;</div><div class="line">        Route route = routes.get(i);</div><div class="line">        Internal.instance.get(connectionPool, address, this, route);</div><div class="line">        if (connection != null) &#123;</div><div class="line">          foundPooledConnection = true;</div><div class="line">          result = connection;</div><div class="line">          this.route = route;</div><div class="line">          break;</div><div class="line">        &#125;</div><div class="line">      &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    if (!foundPooledConnection) &#123;</div><div class="line">      if (selectedRoute == null) &#123;</div><div class="line">        selectedRoute = routeSelection.next();</div><div class="line">      &#125;</div><div class="line"></div><div class="line">      // Create a connection and assign it to this allocation immediately. This makes it possible</div><div class="line">      // for an asynchronous cancel() to interrupt the handshake we&apos;re about to do.</div><div class="line">      route = selectedRoute;</div><div class="line">      refusedStreamCount = 0;</div><div class="line">      result = new RealConnection(connectionPool, selectedRoute);</div><div class="line">      acquire(result, false);</div><div class="line">    &#125;</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  // If we found a pooled connection on the 2nd time around, we&apos;re done.</div><div class="line">  // 如果第二次在连接池中找到了连接，则直接返回</div><div class="line">  if (foundPooledConnection) &#123;</div><div class="line">    eventListener.connectionAcquired(call, result);</div><div class="line">    return result;</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  // Do TCP + TLS handshakes. This is a blocking operation.</div><div class="line">  // TCP 连接、TLS 握手</div><div class="line">  result.connect(</div><div class="line">      connectTimeout, readTimeout, writeTimeout, connectionRetryEnabled, call, eventListener);</div><div class="line">  routeDatabase().connected(result.route());</div><div class="line"></div><div class="line">  Socket socket = null;</div><div class="line">  synchronized (connectionPool) &#123;</div><div class="line">    reportedAcquired = true;</div><div class="line"></div><div class="line">    // Pool the connection.</div><div class="line">    // 把连接放进连接池</div><div class="line">    Internal.instance.put(connectionPool, result);</div><div class="line"></div><div class="line">    // If another multiplexed connection to the same address was created concurrently, then</div><div class="line">    // release this connection and acquire that one.</div><div class="line">    if (result.isMultiplexed()) &#123;</div><div class="line">      socket = Internal.instance.deduplicate(connectionPool, address, this);</div><div class="line">      result = connection;</div><div class="line">    &#125;</div><div class="line">  &#125;</div><div class="line">  closeQuietly(socket);</div><div class="line"></div><div class="line">  eventListener.connectionAcquired(call, result);</div><div class="line">  return result;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+
+          
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/01/04/RetryAndFollowUpInterceptor拦截器分析/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="DaQiang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://raw.githubusercontent.com/2227056071/imges/master/phone.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+                <a class="post-title-link" href="/2021/01/04/RetryAndFollowUpInterceptor拦截器分析/" itemprop="url">
+                  OKHttp拦截器RetryAndFollowUpInterceptor分析
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-01-04T00:00:00+08:00">
+                2021-01-04
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2021/01/04/RetryAndFollowUpInterceptor拦截器分析/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2021/01/04/RetryAndFollowUpInterceptor拦截器分析/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/2021/01/04/RetryAndFollowUpInterceptor拦截器分析/" class="leancloud_visitors" data-flag-title="OKHttp拦截器RetryAndFollowUpInterceptor分析">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数 </span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>RetryAndFollowUpInterceptor 拦截器为 OkHttp 拦截器集合中的第一个拦截器，它的作用顾名思义为网络请求失败时发起重试、重定向，下面看一下 intercept 方法的具体代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div></pre></td><td class="code"><pre><div class="line">Request request = chain.request();</div><div class="line"> RealInterceptorChain realChain = (RealInterceptorChain) chain;</div><div class="line"> Call call = realChain.call();</div><div class="line"> // 创建 streamAllocation</div><div class="line"> streamAllocation = new StreamAllocation(client.connectionPool(), createAddress(request.url()),</div><div class="line">     call, eventListener, callStackTrace);</div><div class="line"> int followUpCount = 0;//重定向的次数</div><div class="line"> Response priorResponse = null;</div><div class="line"> while (true) &#123;</div><div class="line"> 	//请求被取消</div><div class="line">   if (canceled) &#123;</div><div class="line">     streamAllocation.release();</div><div class="line">     throw new IOException(&quot;Canceled&quot;);</div><div class="line">   &#125;</div><div class="line">   Response response;</div><div class="line">   boolean releaseConnection = true;</div><div class="line">   try &#123;</div><div class="line">     response = realChain.proceed(request, streamAllocation, null, null);</div><div class="line">     releaseConnection = false;</div><div class="line">   &#125; catch (RouteException e) &#123;</div><div class="line">   	// 抛出的路由异常</div><div class="line">     // The attempt to connect via a route failed. The request will not have been sent.</div><div class="line">     // 判断是否能恢复</div><div class="line">     if (!recover(e.getLastConnectException(), false, request)) &#123;</div><div class="line">       throw e.getLastConnectException();</div><div class="line">     &#125;</div><div class="line">     releaseConnection = false;</div><div class="line">     continue;//继续重试</div><div class="line">   &#125; catch (IOException e) &#123;</div><div class="line">     // An attempt to communicate with a server failed. The request may have been sent.</div><div class="line">     boolean requestSendStarted = !(e instanceof ConnectionShutdownException);</div><div class="line">     // 判断是否能恢复</div><div class="line">     if (!recover(e, requestSendStarted, request)) throw e;</div><div class="line">     releaseConnection = false;</div><div class="line">     continue;//继续重试</div><div class="line">   &#125; finally &#123;</div><div class="line">     streamAllocation.release();</div><div class="line">   &#125;</div><div class="line"></div><div class="line">//重定向请求</div><div class="line">   Request followUp = followUpRequest(response);</div><div class="line">   if (followUp == null) &#123;</div><div class="line">   	//无需重定向，直接返回</div><div class="line">     return response;</div><div class="line">   &#125;</div><div class="line">   if (++followUpCount &gt; MAX_FOLLOW_UPS) &#123;</div><div class="line">    	//超过了重定向的最大次数</div><div class="line">     throw new ProtocolException(&quot;Too many follow-up requests: &quot; + followUpCount);</div><div class="line">   &#125;</div><div class="line">		if (followUp.body() instanceof UnrepeatableRequestBody) &#123;</div><div class="line">     streamAllocation.release();</div><div class="line">     throw new HttpRetryException(&quot;Cannot retry streamed HTTP body&quot;, response.code());</div><div class="line">   &#125;</div><div class="line"></div><div class="line">   if (!sameConnection(response, followUp.url())) &#123;</div><div class="line">   	// 如果连接的地址发生变化则创建一个新的 streamAllocation</div><div class="line">     streamAllocation.release();</div><div class="line">     streamAllocation = new StreamAllocation(client.connectionPool(),</div><div class="line">         createAddress(followUp.url()), call, eventListener, callStackTrace);</div><div class="line">   &#125; else if (streamAllocation.codec() != null) &#123;</div><div class="line">     throw new IllegalStateException(&quot;Closing the body of &quot; + response</div><div class="line">         + &quot; didn&apos;t close its backing stream. Bad interceptor?&quot;);</div><div class="line">   &#125;</div><div class="line">   request = followUp;</div><div class="line">   priorResponse = response;</div><div class="line"> &#125;</div></pre></td></tr></table></figure>
+<p>大致流程为: 在一个循环里发起请求，如果请求失败则判断是否能发起重试，如果允许重试则继续发起请求。请求失败后判断是否重试的逻辑在 recover 方法里:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line">private boolean recover(IOException e, boolean requestSendStarted, Request userRequest) &#123;</div><div class="line">  streamAllocation.streamFailed(e);</div><div class="line"></div><div class="line">  // The application layer has forbidden retries.</div><div class="line">  // 调用者是否配置允许重试，如果不允许的话直接返回 false</div><div class="line">  if (!client.retryOnConnectionFailure()) return false;</div><div class="line"></div><div class="line">  // We can&apos;t send the request body again.</div><div class="line">  // 如果已经发出请求且请求体不可缓存则返回 false</div><div class="line">  if (requestSendStarted &amp;&amp; userRequest.body() instanceof UnrepeatableRequestBody) return false;</div><div class="line"></div><div class="line">  // This exception is fatal.</div><div class="line">  // 根据异常的类型判断是否能重试</div><div class="line">  if (!isRecoverable(e, requestSendStarted)) return false;</div><div class="line"></div><div class="line">  // No more routes to attempt.</div><div class="line">  // 没有路由地址可用</div><div class="line">  if (!streamAllocation.hasMoreRoutes()) return false;</div><div class="line"></div><div class="line">  // For failure recovery, use the same route selector with a new connection.</div><div class="line">  return true;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>如果成功返回了 response 则根据 responseCode 判断是否需要发起重定向请求(当 响应code的值为 3xx 重定向、401、407、408 时)，具体要看一下 followUpRequest 方法:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div><div class="line">105</div><div class="line">106</div><div class="line">107</div><div class="line">108</div><div class="line">109</div><div class="line">110</div></pre></td><td class="code"><pre><div class="line">private Request followUpRequest(Response userResponse) throws IOException &#123;</div><div class="line">  if (userResponse == null) throw new IllegalStateException();</div><div class="line">  Connection connection = streamAllocation.connection();</div><div class="line">  Route route = connection != null</div><div class="line">      ? connection.route()</div><div class="line">      : null;</div><div class="line">  int responseCode = userResponse.code();</div><div class="line"></div><div class="line">  final String method = userResponse.request().method();</div><div class="line">  switch (responseCode) &#123;</div><div class="line">  	// HTTP Status-Code 407 缺乏位于浏览器与可以访问所请求资源的服务器之间的代理服务器（proxy server ）要求的身份验证凭证</div><div class="line">    case HTTP_PROXY_AUTH:</div><div class="line">      Proxy selectedProxy = route != null</div><div class="line">          ? route.proxy()</div><div class="line">          : client.proxy();</div><div class="line">      if (selectedProxy.type() != Proxy.Type.HTTP) &#123;</div><div class="line">        throw new ProtocolException(&quot;Received HTTP_PROXY_AUTH (407) code while not using proxy&quot;);</div><div class="line">      &#125;</div><div class="line">      return client.proxyAuthenticator().authenticate(route, userResponse);</div><div class="line"></div><div class="line">	// HTTP Status-Code 401: 缺乏目标资源要求的身份验证凭证.</div><div class="line">    case HTTP_UNAUTHORIZED:</div><div class="line">      return client.authenticator().authenticate(route, userResponse);</div><div class="line"></div><div class="line">	// 临时重定向响应状态码，表示请求的资源暂时地被移动到了响应的 Location 首部所指向的 URL 上</div><div class="line">    case HTTP_PERM_REDIRECT:</div><div class="line">    // 308 Permanent Redirect（永久重定向）是表示重定向的响应状态码，说明请求的资源已经被永久的移动到了由 Location 首部指定的 URL 上</div><div class="line">    case HTTP_TEMP_REDIRECT:</div><div class="line">      // &quot;If the 307 or 308 status code is received in response to a request other than GET</div><div class="line">      // or HEAD, the user agent MUST NOT automatically redirect the request&quot;</div><div class="line">      //对于 307 308，如果请求方法不是 GET 或者 HEAD,则不能发起重定向.可参考文档https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html</div><div class="line">      if (!method.equals(&quot;GET&quot;) &amp;&amp; !method.equals(&quot;HEAD&quot;)) &#123;</div><div class="line">        return null;</div><div class="line">      &#125;</div><div class="line">      // fall-through</div><div class="line">    case HTTP_MULT_CHOICE:</div><div class="line">    case HTTP_MOVED_PERM:</div><div class="line">    case HTTP_MOVED_TEMP:</div><div class="line">    case HTTP_SEE_OTHER:</div><div class="line">      // Does the client allow redirects?</div><div class="line">      // 客户端是否允许重定向？</div><div class="line">      if (!client.followRedirects()) return null;</div><div class="line">		// 获取重定向的地址</div><div class="line">      String location = userResponse.header(&quot;Location&quot;);</div><div class="line">      if (location == null) return null;</div><div class="line">      HttpUrl url = userResponse.request().url().resolve(location);</div><div class="line"></div><div class="line">      // Don&apos;t follow redirects to unsupported protocols.</div><div class="line">      if (url == null) return null;</div><div class="line"></div><div class="line">      // If configured, don&apos;t follow redirects between SSL and non-SSL.</div><div class="line">      // 如果禁止 SSL 和非 SSL 间进行重定向，则返回 null</div><div class="line">      boolean sameScheme = url.scheme().equals(userResponse.request().url().scheme());</div><div class="line">      if (!sameScheme &amp;&amp; !client.followSslRedirects()) return null;</div><div class="line"></div><div class="line">      // Most redirects don&apos;t include a request body.</div><div class="line">      // 大多数请求体不包含请求体</div><div class="line">      Request.Builder requestBuilder = userResponse.request().newBuilder();</div><div class="line">      if (HttpMethod.permitsRequestBody(method)) &#123;</div><div class="line">        final boolean maintainBody = HttpMethod.redirectsWithBody(method);</div><div class="line">        if (HttpMethod.redirectsToGet(method)) &#123;</div><div class="line">          requestBuilder.method(&quot;GET&quot;, null);</div><div class="line">        &#125; else &#123;</div><div class="line">          RequestBody requestBody = maintainBody ? userResponse.request().body() : null;</div><div class="line">          requestBuilder.method(method, requestBody);</div><div class="line">        &#125;</div><div class="line">        //如果不包含请求体则移除相应 header</div><div class="line">        if (!maintainBody) &#123;</div><div class="line">          requestBuilder.removeHeader(&quot;Transfer-Encoding&quot;);</div><div class="line">          requestBuilder.removeHeader(&quot;Content-Length&quot;);</div><div class="line">          requestBuilder.removeHeader(&quot;Content-Type&quot;);</div><div class="line">        &#125;</div><div class="line">      &#125;</div><div class="line"></div><div class="line">      // When redirecting across hosts, drop all authentication headers. This</div><div class="line">      // is potentially annoying to the application layer since they have no</div><div class="line">      // way to retain them.</div><div class="line">      // 如果不是相同的连接，则移除掉 Authorization</div><div class="line">      if (!sameConnection(userResponse, url)) &#123;</div><div class="line">        requestBuilder.removeHeader(&quot;Authorization&quot;);</div><div class="line">      &#125;</div><div class="line"></div><div class="line">      return requestBuilder.url(url).build();</div><div class="line"></div><div class="line">    case HTTP_CLIENT_TIMEOUT:</div><div class="line">      // 408&apos;s are rare in practice, but some servers like HAProxy use this response code. The</div><div class="line">      // spec says that we may repeat the request without modifications. Modern browsers also</div><div class="line">      // repeat the request (even non-idempotent ones.)</div><div class="line">      // 响应状态码 408 Request Timeout 表示服务器想要将没有在使用的连接关闭。一些服务器会在空闲连接上发送此信息，即便是在客户端没有发送任何请求的情况下</div><div class="line">      if (!client.retryOnConnectionFailure()) &#123;</div><div class="line">        // The application layer has directed us not to retry the request.</div><div class="line">        return null;</div><div class="line">      &#125;</div><div class="line"></div><div class="line">      if (userResponse.request().body() instanceof UnrepeatableRequestBody) &#123;</div><div class="line">        return null;</div><div class="line">      &#125;</div><div class="line"></div><div class="line">      if (userResponse.priorResponse() != null</div><div class="line">          &amp;&amp; userResponse.priorResponse().code() == HTTP_CLIENT_TIMEOUT) &#123;</div><div class="line">        // We attempted to retry and got another timeout. Give up.</div><div class="line">        return null;</div><div class="line">      &#125;</div><div class="line">		// 重新发起原始请求</div><div class="line">      return userResponse.request();</div><div class="line"></div><div class="line">    default:</div><div class="line">      return null;</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+
+          
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/01/03/Glide源码解析之缓存/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="DaQiang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://raw.githubusercontent.com/2227056071/imges/master/phone.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+                <a class="post-title-link" href="/2021/01/03/Glide源码解析之缓存/" itemprop="url">
+                  Glide源码解析之缓存
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-01-03T00:00:00+08:00">
+                2021-01-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2021/01/03/Glide源码解析之缓存/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2021/01/03/Glide源码解析之缓存/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/2021/01/03/Glide源码解析之缓存/" class="leancloud_visitors" data-flag-title="Glide源码解析之缓存">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数 </span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="Glide源码解析之缓存"><a href="#Glide源码解析之缓存" class="headerlink" title="Glide源码解析之缓存"></a>Glide源码解析之缓存</h1><p>Glide缓存机制分为内存缓存和硬盘缓存。内存缓存的目的是避免重复加载图片到内存、提升加载速度；硬盘缓存的目的是避免重复从网络下载图片造成流量的浪费、同时提升加载速度</p>
+<h2 id="读取内存缓存"><a href="#读取内存缓存" class="headerlink" title="读取内存缓存"></a>读取内存缓存</h2><p>读取内存缓存的地方是在 Engine#load 方法里:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">//读取内存中缓存的图片</div><div class="line">memoryResource = loadFromMemory(key, isMemoryCacheable, startTime);</div></pre></td></tr></table></figure>
+<p>进入 loadFromMemory 方法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">if (!isMemoryCacheable) &#123;</div><div class="line">		//禁用内存缓存则返回空</div><div class="line">    return null;</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  EngineResource&lt;?&gt; active = loadFromActiveResources(key);</div><div class="line">  if (active != null) &#123;</div><div class="line">    //要加载的图片正在被使用(即该图片是active的),可直接使用该图片</div><div class="line">    return active;</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  EngineResource&lt;?&gt; cached = loadFromCache(key);</div><div class="line">  if (cached != null) &#123;</div><div class="line">   	//该图片缓存在LRU内存里</div><div class="line">    return cached;</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<p>内存缓存也分两级。先看 activeResources 是否存在，activeResources使用一个集合保存着图片的弱引用</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">//该集合保存着图片的弱引用，Key代表图片的key</div><div class="line">Map&lt;Key, ResourceWeakReference&gt; activeEngineResources = new HashMap&lt;&gt;();</div></pre></td></tr></table></figure>
+<p>如果存在的话，该图片资源EngineResource的引用次数acquired会加1。如果不存在的话则接着去内存中找：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">private EngineResource&lt;?&gt; getEngineResourceFromCache(Key key) &#123;</div><div class="line">		//从内存中读取缓存，cache 的类型是 MemoryCache</div><div class="line">    Resource&lt;?&gt; cached = cache.remove(key);</div><div class="line">    final EngineResource&lt;?&gt; result;</div><div class="line">    if (cached == null) &#123;</div><div class="line">      result = null;</div><div class="line">    &#125; else if (cached instanceof EngineResource) &#123;</div><div class="line">      result = (EngineResource&lt;?&gt;) cached;</div><div class="line">    &#125; else &#123;</div><div class="line">      result =</div><div class="line">          new EngineResource&lt;&gt;(</div><div class="line">              cached, /*isMemoryCacheable=*/ true, /*isRecyclable=*/ true, key, /*listener=*/ this);</div><div class="line">    &#125;</div><div class="line">    return result;</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<p>MemoryCache 是个接口。MemoryCache有两个实现类 LruResourceCache 和 MemoryCacheAdapter(低版本适配)。重点看一下LruResourceCache类。它继承了 LruCache 类,LruCache 类里使用 LinkedHashMap 来保存最近使用的图片:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">private final Map&lt;T, Entry&lt;Y&gt;&gt; cache = new LinkedHashMap&lt;&gt;(100, 0.75f, true);</div></pre></td></tr></table></figure>
+<p>LinkedHashMap类是java自带的类，实现了LRU缓存(LRU是最近最少使用算法)，可以设置一个内存的阈值，当内存超过该阈值时会移除掉最老的缓存。LinkedHashMap实现LRU算法的原理可参考 <a href="图解LinkedHashMap原理">https://www.jianshu.com/p/8f4f58b4b8ab</a></p>
+<h2 id="读取硬盘缓存"><a href="#读取硬盘缓存" class="headerlink" title="读取硬盘缓存"></a>读取硬盘缓存</h2><p>硬盘缓存也分为两种情况，一种是缓存原始图片，一种是缓存转换后的图片。</p>
+<p>读取原始图片缓存的代码是在 DataCacheGenerator 类的 startNext 方法里:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">cacheFile = helper.getDiskCache().get(originalKey);</div></pre></td></tr></table></figure>
+<p>helper.getDiskCache()获取到DiskCache对象，DiskCache 是接口类，DiskCache默认的实现类是 DiskLruCacheWrapper，看一下它的 get 方法:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">//计算key的sha256值</div><div class="line">String safeKey = safeKeyGenerator.getSafeKey(key);</div><div class="line"> File result = null;</div><div class="line"> try &#123;</div><div class="line"> //获取缓存值</div><div class="line">   final DiskLruCache.Value value = getDiskCache().get(safeKey);</div><div class="line">   if (value != null) &#123;</div><div class="line">     result = value.getFile(0);</div><div class="line">   &#125;</div><div class="line"> &#125; catch (IOException e) &#123;</div><div class="line"> ...</div><div class="line"> &#125;</div><div class="line"> return result;</div></pre></td></tr></table></figure>
+<p>细看这一行代码:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">final DiskLruCache.Value value = getDiskCache().get(safeKey)</div></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div></pre></td><td class="code"><pre><div class="line">Entry entry = lruEntries.get(key);</div><div class="line">if (entry == null) &#123;</div><div class="line">  return null;</div><div class="line">&#125;</div><div class="line"></div><div class="line">if (!entry.readable) &#123;</div><div class="line">  return null;</div><div class="line">&#125;</div><div class="line"></div><div class="line">for (File file : entry.cleanFiles) &#123;</div><div class="line">    // A file must have been deleted manually!</div><div class="line">    if (!file.exists()) &#123;</div><div class="line">        return null;</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line">redundantOpCount++;</div><div class="line">journalWriter.append(READ);</div><div class="line">journalWriter.append(&apos; &apos;);</div><div class="line">journalWriter.append(key);</div><div class="line">journalWriter.append(&apos;\n&apos;);</div><div class="line">if (journalRebuildRequired()) &#123;</div><div class="line">  executorService.submit(cleanupCallable);</div><div class="line">&#125;</div><div class="line">return new Value(key, entry.sequenceNumber, entry.cleanFiles, entry.lengths);</div></pre></td></tr></table></figure>
+<p>lruEntries的类型也是LinkedHashMap,可知硬盘缓存也遵循LRU算法以避免磁盘缓存的文件过大。</p>
+<h2 id="写入内存缓存"><a href="#写入内存缓存" class="headerlink" title="写入内存缓存"></a>写入内存缓存</h2><h3 id="写入弱引用缓存分为两种情况"><a href="#写入弱引用缓存分为两种情况" class="headerlink" title="写入弱引用缓存分为两种情况:"></a>写入弱引用缓存分为两种情况:</h3><ol>
+<li><p>一种是从内存强引用LRU读取缓存后，把对应的图片从LRU移除的同时会把该图片加入到弱引用集合中。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">private EngineResource&lt;?&gt; loadFromCache(Key key) &#123;</div><div class="line">   EngineResource&lt;?&gt; cached = getEngineResourceFromCache(key);</div><div class="line">   if (cached != null) &#123;</div><div class="line">   //把该图片加入到弱引用集合,图片的引用计数加1</div><div class="line">     cached.acquire();</div><div class="line">     activeResources.activate(key, cached);</div><div class="line">   &#125;</div><div class="line">   return cached;</div><div class="line"> &#125;</div></pre></td></tr></table></figure>
+</li>
+<li><p>另一种情况是当首次加载图片的任务完成之后把该图片加入到弱引用集合中。如下:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">public synchronized void onEngineJobComplete(</div><div class="line">    EngineJob&lt;?&gt; engineJob, Key key, EngineResource&lt;?&gt; resource) &#123;</div><div class="line">  //把图片加入到弱引用集合</div><div class="line">  if (resource != null &amp;&amp; resource.isMemoryCacheable()) &#123;</div><div class="line">    activeResources.activate(key, resource);</div><div class="line">  &#125;</div><div class="line">...</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+</ol>
+<h3 id="写入LRU缓存"><a href="#写入LRU缓存" class="headerlink" title="写入LRU缓存"></a>写入LRU缓存</h3><p>写入LRU缓存是在 Engine 类的 onResourceReleased 方法中:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">cache.put(cacheKey, resource);</div></pre></td></tr></table></figure>
+<p>对于 onResourceReleased 方法的调用时机，分为两种情况:</p>
+<p>一种是图片的引用计数次数变为 0 的时候会调用，具体代码位置在 EngineResource 类的 release 方法中:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">void release() &#123;</div><div class="line">	...</div><div class="line">  if (release) &#123;</div><div class="line">  //图片的引用计数次数变为 0 的时候会调用 onResourceReleased 方法</div><div class="line">    listener.onResourceReleased(key, this);</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>另一种情况是当ResourceWeakReference弱引用的对象被 gc 回收后调用 cleanupActiveReference 方法，cleanupActiveReference 同样会调用 onResourceReleased 方法:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">void cleanupActiveReference(@NonNull ResourceWeakReference ref) &#123;</div><div class="line">    synchronized (this) &#123;</div><div class="line">    	//图片被 gc 回收后移除 activeEngineResources 中对应的图片key</div><div class="line">      activeEngineResources.remove(ref.key);</div><div class="line">      if (!ref.isCacheable || ref.resource == null) &#123;</div><div class="line">        return;</div><div class="line">      &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    EngineResource&lt;?&gt; newResource =</div><div class="line">        new EngineResource&lt;&gt;(</div><div class="line">            ref.resource, /*isMemoryCacheable=*/ true, /*isRecyclable=*/ false, ref.key, listener);</div><div class="line">    //图片被 gc 回收掉后，创建一个新的图片资源 newResource，放到LRU内存中</div><div class="line">    listener.onResourceReleased(ref.key, newResource);</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<h2 id="写入硬盘缓存"><a href="#写入硬盘缓存" class="headerlink" title="写入硬盘缓存"></a>写入硬盘缓存</h2><p>一处是在DecodeJob 类中，当图片数据获取完成之后，会先解码再进行编码，onDataFetcherReady -&gt; decodeFromRetrievedData -&gt; notifyEncodeAndRelease 中：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">if (deferredEncodeManager.hasResourceToEncode()) &#123;</div><div class="line">	//调用encode方法把图片写入磁盘</div><div class="line">  deferredEncodeManager.encode(diskCacheProvider, options);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>encode方法具体实现如下:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">void encode(DiskCacheProvider diskCacheProvider, Options options) &#123;</div><div class="line">      try &#123;</div><div class="line">      //把图片写入磁盘</div><div class="line">        diskCacheProvider</div><div class="line">            .getDiskCache()</div><div class="line">            .put(key, new DataCacheWriter&lt;&gt;(encoder, toEncode, options));</div><div class="line">      &#125; finally &#123;</div><div class="line">        toEncode.unlock();</div><div class="line">      &#125;</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>另一处是在SourceGenerator类中，</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"> public boolean startNext() &#123;</div><div class="line"> 		//缓存原始未修改的图片</div><div class="line">    if (dataToCache != null) &#123;</div><div class="line">      Object data = dataToCache;</div><div class="line">      dataToCache = null;</div><div class="line">      cacheData(data);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>进入 cacheData 方法中：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">private void cacheData(Object dataToCache) &#123;</div><div class="line">    try &#123;</div><div class="line">      Encoder&lt;Object&gt; encoder = helper.getSourceEncoder(dataToCache);</div><div class="line">      DataCacheWriter&lt;Object&gt; writer =</div><div class="line">          new DataCacheWriter&lt;&gt;(encoder, dataToCache, helper.getOptions());</div><div class="line">      originalKey = new DataCacheKey(loadData.sourceKey, helper.getSignature());</div><div class="line">      //把图片写入磁盘</div><div class="line">      helper.getDiskCache().put(originalKey, writer);</div><div class="line">    &#125; finally &#123;</div><div class="line">      loadData.fetcher.cleanup();</div><div class="line">    &#125;</div><div class="line">		...</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<h3 id="BitmapPool"><a href="#BitmapPool" class="headerlink" title="BitmapPool"></a>BitmapPool</h3><p>bitmap 的内存管理是一个很重要的话题。glide 使用了 BitmapPool 来提升 bitmap 的复用，减少 bitmap 分配内存和回收内存的次数，从而减少 GC 的频率、应用运行更加流畅。</p>
+<p>Android 官方提供 inBitmap 的 api 来复用 bitmap.实例如下:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">if (cache != null) &#123;</div><div class="line">    // Try to find a bitmap to use for inBitmap.</div><div class="line">    Bitmap inBitmap = cache.getBitmapFromReusableSet(options);</div><div class="line"></div><div class="line">    if (inBitmap != null) &#123;</div><div class="line">        // If a suitable bitmap has been found, set it as the value of</div><div class="line">        // inBitmap.</div><div class="line">        options.inBitmap = inBitmap;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>BitmapPool 有两个实现类: LruBitmapPool 和 BitmapPoolAdapter 类.BitmapPoolAdapter 的实现是一个空壳子，重点看一下 LruBitmapPool 类。LruBitmapPool 提供了 put 和 get 方法来操作 bitmap。LruBitmapPool 实际上是通过 LruPoolStrategy 对象来实现存取的。LruPoolStrategy 有多个实现类，不同的系统版本会使用不同的实现类:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">if (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.KITKAT) &#123;</div><div class="line">//android 4.4 版本以上</div><div class="line">     strategy = new SizeConfigStrategy();</div><div class="line">   &#125; else &#123;</div><div class="line">     strategy = new AttributeStrategy();</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+<p>因为目前大多数 app 的最低系统版本在 4.4 以上了，所以 重点看一下 SizeConfigStrategy ，先看 put 方法:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">public void put(Bitmap bitmap) &#123;</div><div class="line">	//获取图片所占内存的字节数</div><div class="line">  int size = Util.getBitmapByteSize(bitmap);</div><div class="line">  //key由size和Bitmap.Config组成</div><div class="line">  Key key = keyPool.get(size, bitmap.getConfig());</div><div class="line"></div><div class="line">//groupedMap的类型是 GroupedLinkedMap，类似 LinkedHashMap ，支持 LRU 算法。</div><div class="line">  groupedMap.put(key, bitmap);</div><div class="line"></div><div class="line">  NavigableMap&lt;Integer, Integer&gt; sizes = getSizesForConfig(bitmap.getConfig());</div><div class="line">  Integer current = sizes.get(key.size);</div><div class="line">  //记录该尺寸的图片的数量</div><div class="line">  sizes.put(key.size, current == null ? 1 : current + 1);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>GroupedLinkedMap 为 glide 自定义的数据结构，支持 LRU 算法，与 LinkedHashMap 类似。不同的是，LinkedHashMap 的 LRU 是针对的 value 值，而 GroupedLinkedMap 是针对的 key 值即图片的 size、而不是bitmap。</p>
+<p>接下来看一下 get 方法:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">public Bitmap get(int width, int height, Bitmap.Config config) &#123;</div><div class="line">  int size = Util.getBitmapByteSize(width, height, config);</div><div class="line">  //这行代码很关键。找到最接近目标值缓存图片的key</div><div class="line">  Key bestKey = findBestKey(size, config);</div><div class="line"></div><div class="line">  Bitmap result = groupedMap.get(bestKey);</div><div class="line">  if (result != null) &#123;</div><div class="line">    // Decrement must be called before reconfigure.</div><div class="line">    decrementBitmapOfSize(bestKey.size, result);</div><div class="line">    result.reconfigure(width, height, config);</div><div class="line">  &#125;</div><div class="line">  return result;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>findBestKey 方法实现如下:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line">private Key findBestKey(int size, Bitmap.Config config) &#123;</div><div class="line">   Key result = keyPool.get(size, config);</div><div class="line">   for (Bitmap.Config possibleConfig : getInConfigs(config)) &#123;</div><div class="line">     NavigableMap&lt;Integer, Integer&gt; sizesForPossibleConfig = getSizesForConfig(possibleConfig);</div><div class="line">     //返回大于等于size的最小值。</div><div class="line">     Integer possibleSize = sizesForPossibleConfig.ceilingKey(size);</div><div class="line">     //如果返回的缓存大小超过了目标值的 8 倍，缓存的使用率变低、就没必要复用缓存了</div><div class="line">     if (possibleSize != null &amp;&amp; possibleSize &lt;= size * MAX_SIZE_MULTIPLE) &#123;</div><div class="line">       if (possibleSize != size</div><div class="line">           || (possibleConfig == null ? config != null : !possibleConfig.equals(config))) &#123;</div><div class="line">         keyPool.offer(result);</div><div class="line">         result = keyPool.get(possibleSize, possibleConfig);</div><div class="line">       &#125;</div><div class="line">       break;</div><div class="line">     &#125;</div><div class="line">   &#125;</div><div class="line">   return result;</div><div class="line"> &#125;</div></pre></td></tr></table></figure>
+<h3 id="ArrayPool"><a href="#ArrayPool" class="headerlink" title="ArrayPool"></a>ArrayPool</h3><p>作用与 bitmapPool 类似，也是复用数组以减少内存的分配和回收，从而减少 GC 的频率、应用运行更加流畅。</p>
+
+          
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/01/03/glide流程/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="DaQiang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://raw.githubusercontent.com/2227056071/imges/master/phone.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+                <a class="post-title-link" href="/2021/01/03/glide流程/" itemprop="url">
+                  Glide源码解析
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-01-03T00:00:00+08:00">
+                2021-01-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2021/01/03/glide流程/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2021/01/03/glide流程/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/2021/01/03/glide流程/" class="leancloud_visitors" data-flag-title="Glide源码解析">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数 </span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h2 id="glide"><a href="#glide" class="headerlink" title="glide"></a>glide</h2><h3 id="为什么选择-glide-框架？"><a href="#为什么选择-glide-框架？" class="headerlink" title="为什么选择 glide 框架？"></a>为什么选择 glide 框架？</h3><h4 id="Picasso-框架"><a href="#Picasso-框架" class="headerlink" title="Picasso 框架"></a>Picasso 框架</h4><p>已无人维护。直接 pass 掉。</p>
+<h4 id="fresco-框架"><a href="#fresco-框架" class="headerlink" title="fresco 框架"></a>fresco 框架</h4><p>用法较复杂，不如 glide 的用法简洁。优势是能大大减少 OOM 的概率，因为图片不在放在 Java Heap 中，而是放在 Ashmem(匿名共享内存)中。适用于高性能加载大量图片的场景。sdk 大小为 500 kb.</p>
+<h4 id="glide-框架"><a href="#glide-框架" class="headerlink" title="glide 框架"></a>glide 框架</h4><p>sdk大小 440 Kb，在可以接受的范围内。适合图片加载量不大的 app 使用。从网络加载速度和加载本地缓存的速度很快。android 官方也推荐使用。</p>
+<p>程序整体架构如图:</p>
+<p><img src="https://raw.githubusercontent.com/JsonChao/Awesome-Third-Library-Source-Analysis/master/ScreenShots/Glide%E6%A1%86%E6%9E%B6%E5%9B%BE.jpg" alt="架构图"></p>
+<p>Glide为单例类。</p>
+<ol>
+<li><p>Glide.with(this) 会创建 RequestManager ，RequestManager 是 Request 的管理类，根据activity或者fragment生命周期的变化对请求做不同的处理。具体流程如下：在参数 activity 上面创建一个隐藏的 RequestManagerFragment，该fragment用于同步activity生命周期的变化,具体方法是利用ActivityFragmentLifecycle类将生命周期的变化回调给RequestManager。</p>
+<p>一个 activity 对应一个 FragmentManager，FragmentManager 对应一个透明的 RequestManagerFragment，RequestManagerFragment 对应一个 RequestManager。所以一个 activity 对应一个 RequestManager 实例 。</p>
+</li>
+<li><p>Glide.with(this).load(url)会创建RequestBuilder。RequestBuilder用来配置请求、加载图片</p>
+</li>
+<li><p>Glide.with(this).load(url).into(imageview):</p>
+<p>buildRequest 方法构建请求返回 request 对象;</p>
+<p>requestManager.track(target, request) 方法里会调用 requestTracker.runRequest(request) 方法，从而执行 request 的 begin() 方法,begin 方法里会判断请求的状态并做不同的处理。当view的大小确定以后，会执行onSizeReady方法，重点看onSizeReady里的engine.load()方法：</p>
+<p>​    从 ActiveResources 里获取缓存(ActiveResources 保存弱引用的集合),生命周期短、没有大小限制;</p>
+<p>​    从MemoryCache里获取缓存，使用 LRU 算法保证内存不超过限定值；</p>
+<p>​    使用 engineJob 启动 decodeJob,run方法里调用 dataFetcher 的 loadData方法加载数据(从网络、本地加载)，获取完成后使用 Encoder 将数据存入磁盘缓存文件中（sourceGenerator），同时使用对应的解码器将原始数据转换为相应的资源文件.</p>
+<p>当资源加载完成时，会执行 SingleRequest类 的 onResourceReady 方法。依次跟下去会执行 target.onResourceReady 方法:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">target.onResourceReady(result, animation)</div></pre></td></tr></table></figure>
+<p>onResourceReady 方法有多种实现，以 ImageViewTarget 类的实现为例:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">public void onResourceReady(@NonNull Z resource, @Nullable Transition&lt;? super Z&gt; transition) &#123;</div><div class="line">  if (transition == null || !transition.transition(resource, this)) &#123;</div><div class="line">    setResourceInternal(resource);</div><div class="line">  &#125; else &#123;</div><div class="line">    maybeUpdateAnimatable(resource);</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>进入 setResourceInternal 方法，发现其调用了一个抽象方法 setResource:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">protected abstract void setResource(@Nullable Z resource);</div></pre></td></tr></table></figure>
+<p>setResource 方法也有多个实现。看一下 BitmapImageViewTarget 类的实现:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">protected void setResource(Bitmap resource) &#123;</div><div class="line">   view.setImageBitmap(resource);</div><div class="line"> &#125;</div></pre></td></tr></table></figure>
+<p>可以看到，上面这行代码调用 android 系统 API  把图片资源设置给 view 以完成显示工作。</p>
+</li>
+</ol>
 
           
         
