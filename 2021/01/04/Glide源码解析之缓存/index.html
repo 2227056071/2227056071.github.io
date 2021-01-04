@@ -1,0 +1,883 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.0" />
+
+
+
+
+
+
+<meta name="description" content="Glide源码解析之缓存Glide缓存机制分为内存缓存和硬盘缓存。内存缓存的目的是避免重复加载图片到内存、提升加载速度；硬盘缓存的目的是避免重复从网络下载图片造成流量的浪费、同时提升加载速度 读取内存缓存读取内存缓存的地方是在 Engine#load 方法里: 12//读取内存中缓存的图片memoryResource = loadFromMemory(key, isMemoryCacheable,">
+<meta name="keywords">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Hexo">
+<meta property="og:url" content="http://yoursite.com/2021/01/04/Glide源码解析之缓存/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Glide源码解析之缓存Glide缓存机制分为内存缓存和硬盘缓存。内存缓存的目的是避免重复加载图片到内存、提升加载速度；硬盘缓存的目的是避免重复从网络下载图片造成流量的浪费、同时提升加载速度 读取内存缓存读取内存缓存的地方是在 Engine#load 方法里: 12//读取内存中缓存的图片memoryResource = loadFromMemory(key, isMemoryCacheable,">
+<meta property="og:updated_time" content="2021-01-04T12:32:03.974Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Hexo">
+<meta name="twitter:description" content="Glide源码解析之缓存Glide缓存机制分为内存缓存和硬盘缓存。内存缓存的目的是避免重复加载图片到内存、提升加载速度；硬盘缓存的目的是避免重复从网络下载图片造成流量的浪费、同时提升加载速度 读取内存缓存读取内存缓存的地方是在 Engine#load 方法里: 12//读取内存中缓存的图片memoryResource = loadFromMemory(key, isMemoryCacheable,">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"right","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2021/01/04/Glide源码解析之缓存/"/>
+
+
+
+
+
+  <title>  | Hexo </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-right page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/01/04/Glide源码解析之缓存/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="DaQiang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://raw.githubusercontent.com/2227056071/imges/master/phone.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-01-04T20:36:33+08:00">
+                2021-01-04
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2021/01/04/Glide源码解析之缓存/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2021/01/04/Glide源码解析之缓存/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/2021/01/04/Glide源码解析之缓存/" class="leancloud_visitors" data-flag-title="">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数 </span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="Glide源码解析之缓存"><a href="#Glide源码解析之缓存" class="headerlink" title="Glide源码解析之缓存"></a>Glide源码解析之缓存</h1><p>Glide缓存机制分为内存缓存和硬盘缓存。内存缓存的目的是避免重复加载图片到内存、提升加载速度；硬盘缓存的目的是避免重复从网络下载图片造成流量的浪费、同时提升加载速度</p>
+<h2 id="读取内存缓存"><a href="#读取内存缓存" class="headerlink" title="读取内存缓存"></a>读取内存缓存</h2><p>读取内存缓存的地方是在 Engine#load 方法里:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">//读取内存中缓存的图片</div><div class="line">memoryResource = loadFromMemory(key, isMemoryCacheable, startTime);</div></pre></td></tr></table></figure>
+<p>进入 loadFromMemory 方法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">if (!isMemoryCacheable) &#123;</div><div class="line">		//禁用内存缓存则返回空</div><div class="line">    return null;</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  EngineResource&lt;?&gt; active = loadFromActiveResources(key);</div><div class="line">  if (active != null) &#123;</div><div class="line">    //要加载的图片正在被使用(即该图片是active的),可直接使用该图片</div><div class="line">    return active;</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  EngineResource&lt;?&gt; cached = loadFromCache(key);</div><div class="line">  if (cached != null) &#123;</div><div class="line">   	//该图片缓存在LRU内存里</div><div class="line">    return cached;</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<p>内存缓存也分两级。先看 activeResources 是否存在，activeResources使用一个集合保存着图片的弱引用 </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">//该集合保存着图片的弱引用，Key代表图片的key</div><div class="line">Map&lt;Key, ResourceWeakReference&gt; activeEngineResources = new HashMap&lt;&gt;();</div></pre></td></tr></table></figure>
+<p>如果存在的话，该图片资源EngineResource的引用次数acquired会加1。如果不存在的话则接着去内存中找：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">private EngineResource&lt;?&gt; getEngineResourceFromCache(Key key) &#123;</div><div class="line">		//从内存中读取缓存，cache 的类型是 MemoryCache</div><div class="line">    Resource&lt;?&gt; cached = cache.remove(key);</div><div class="line">    final EngineResource&lt;?&gt; result;</div><div class="line">    if (cached == null) &#123;</div><div class="line">      result = null;</div><div class="line">    &#125; else if (cached instanceof EngineResource) &#123;</div><div class="line">      result = (EngineResource&lt;?&gt;) cached;</div><div class="line">    &#125; else &#123;</div><div class="line">      result =</div><div class="line">          new EngineResource&lt;&gt;(</div><div class="line">              cached, /*isMemoryCacheable=*/ true, /*isRecyclable=*/ true, key, /*listener=*/ this);</div><div class="line">    &#125;</div><div class="line">    return result;</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<p>MemoryCache 是个接口。MemoryCache有两个实现类 LruResourceCache 和 MemoryCacheAdapter(低版本适配)。重点看一下LruResourceCache类。它继承了 LruCache 类,LruCache 类里使用 LinkedHashMap 来保存最近使用的图片:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">private final Map&lt;T, Entry&lt;Y&gt;&gt; cache = new LinkedHashMap&lt;&gt;(100, 0.75f, true);</div></pre></td></tr></table></figure>
+<p>LinkedHashMap类是java自带的类，实现了LRU缓存(LRU是最近最少使用算法)，可以设置一个内存的阈值，当内存超过该阈值时会移除掉最老的缓存。LinkedHashMap实现LRU算法的原理可参考 <a href="图解LinkedHashMap原理">https://www.jianshu.com/p/8f4f58b4b8ab</a></p>
+<h2 id="读取硬盘缓存"><a href="#读取硬盘缓存" class="headerlink" title="读取硬盘缓存"></a>读取硬盘缓存</h2><p>硬盘缓存也分为两种情况，一种是缓存原始图片，一种是缓存转换后的图片。</p>
+<p>读取原始图片缓存的代码是在 DataCacheGenerator 类的 startNext 方法里:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">cacheFile = helper.getDiskCache().get(originalKey);</div></pre></td></tr></table></figure>
+<p>helper.getDiskCache()获取到DiskCache对象，DiskCache 是接口类，DiskCache默认的实现类是 DiskLruCacheWrapper，看一下它的 get 方法:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">//计算key的sha256值</div><div class="line">String safeKey = safeKeyGenerator.getSafeKey(key);</div><div class="line"> File result = null;</div><div class="line"> try &#123;</div><div class="line"> //获取缓存值</div><div class="line">   final DiskLruCache.Value value = getDiskCache().get(safeKey);</div><div class="line">   if (value != null) &#123;</div><div class="line">     result = value.getFile(0);</div><div class="line">   &#125;</div><div class="line"> &#125; catch (IOException e) &#123;</div><div class="line"> ...</div><div class="line"> &#125;</div><div class="line"> return result;</div></pre></td></tr></table></figure>
+<p>细看这一行代码:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">final DiskLruCache.Value value = getDiskCache().get(safeKey)</div></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div></pre></td><td class="code"><pre><div class="line">Entry entry = lruEntries.get(key);</div><div class="line">if (entry == null) &#123;</div><div class="line">  return null;</div><div class="line">&#125;</div><div class="line"></div><div class="line">if (!entry.readable) &#123;</div><div class="line">  return null;</div><div class="line">&#125;</div><div class="line"></div><div class="line">for (File file : entry.cleanFiles) &#123;</div><div class="line">    // A file must have been deleted manually!</div><div class="line">    if (!file.exists()) &#123;</div><div class="line">        return null;</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line">redundantOpCount++;</div><div class="line">journalWriter.append(READ);</div><div class="line">journalWriter.append(&apos; &apos;);</div><div class="line">journalWriter.append(key);</div><div class="line">journalWriter.append(&apos;\n&apos;);</div><div class="line">if (journalRebuildRequired()) &#123;</div><div class="line">  executorService.submit(cleanupCallable);</div><div class="line">&#125;</div><div class="line">return new Value(key, entry.sequenceNumber, entry.cleanFiles, entry.lengths);</div></pre></td></tr></table></figure>
+<p>lruEntries的类型也是LinkedHashMap,可知硬盘缓存也遵循LRU算法以避免磁盘缓存的文件过大。</p>
+<h2 id="写入内存缓存"><a href="#写入内存缓存" class="headerlink" title="写入内存缓存"></a>写入内存缓存</h2><h3 id="写入弱引用缓存分为两种情况"><a href="#写入弱引用缓存分为两种情况" class="headerlink" title="写入弱引用缓存分为两种情况:"></a>写入弱引用缓存分为两种情况:</h3><ol>
+<li><p>一种是从内存强引用LRU读取缓存后，把对应的图片从LRU移除的同时会把该图片加入到弱引用集合中。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">private EngineResource&lt;?&gt; loadFromCache(Key key) &#123;</div><div class="line">   EngineResource&lt;?&gt; cached = getEngineResourceFromCache(key);</div><div class="line">   if (cached != null) &#123;</div><div class="line">   //把该图片加入到弱引用集合,图片的引用计数加1</div><div class="line">     cached.acquire();</div><div class="line">     activeResources.activate(key, cached);</div><div class="line">   &#125;</div><div class="line">   return cached;</div><div class="line"> &#125;</div></pre></td></tr></table></figure>
+</li>
+<li><p>另一种情况是当首次加载图片的任务完成之后把该图片加入到弱引用集合中。如下:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">public synchronized void onEngineJobComplete(</div><div class="line">    EngineJob&lt;?&gt; engineJob, Key key, EngineResource&lt;?&gt; resource) &#123;</div><div class="line">  //把图片加入到弱引用集合</div><div class="line">  if (resource != null &amp;&amp; resource.isMemoryCacheable()) &#123;</div><div class="line">    activeResources.activate(key, resource);</div><div class="line">  &#125;</div><div class="line">...</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+</ol>
+<h3 id="写入LRU缓存"><a href="#写入LRU缓存" class="headerlink" title="写入LRU缓存"></a>写入LRU缓存</h3><p>写入LRU缓存是在 Engine 类的 onResourceReleased 方法中:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">cache.put(cacheKey, resource);</div></pre></td></tr></table></figure>
+<p>对于 onResourceReleased 方法的调用时机，分为两种情况:</p>
+<p>一种是图片的引用计数次数变为 0 的时候会调用，具体代码位置在 EngineResource 类的 release 方法中:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">void release() &#123;</div><div class="line">	...</div><div class="line">  if (release) &#123;</div><div class="line">  //图片的引用计数次数变为 0 的时候会调用 onResourceReleased 方法</div><div class="line">    listener.onResourceReleased(key, this);</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>另一种情况是当ResourceWeakReference弱引用的对象被 gc 回收后调用 cleanupActiveReference 方法，cleanupActiveReference 同样会调用 onResourceReleased 方法:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">void cleanupActiveReference(@NonNull ResourceWeakReference ref) &#123;</div><div class="line">    synchronized (this) &#123;</div><div class="line">    	//图片被 gc 回收后移除 activeEngineResources 中对应的图片key</div><div class="line">      activeEngineResources.remove(ref.key);</div><div class="line">      if (!ref.isCacheable || ref.resource == null) &#123;</div><div class="line">        return;</div><div class="line">      &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    EngineResource&lt;?&gt; newResource =</div><div class="line">        new EngineResource&lt;&gt;(</div><div class="line">            ref.resource, /*isMemoryCacheable=*/ true, /*isRecyclable=*/ false, ref.key, listener);</div><div class="line">    //图片被 gc 回收掉后，创建一个新的图片资源 newResource，放到LRU内存中</div><div class="line">    listener.onResourceReleased(ref.key, newResource);</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<h2 id="写入硬盘缓存"><a href="#写入硬盘缓存" class="headerlink" title="写入硬盘缓存"></a>写入硬盘缓存</h2><p>一处是在DecodeJob 类中，当图片数据获取完成之后，会先解码再进行编码，onDataFetcherReady -&gt; decodeFromRetrievedData -&gt; notifyEncodeAndRelease 中：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">if (deferredEncodeManager.hasResourceToEncode()) &#123;</div><div class="line">	//调用encode方法把图片写入磁盘</div><div class="line">  deferredEncodeManager.encode(diskCacheProvider, options);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>encode方法具体实现如下:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">void encode(DiskCacheProvider diskCacheProvider, Options options) &#123;</div><div class="line">      try &#123;</div><div class="line">      //把图片写入磁盘</div><div class="line">        diskCacheProvider</div><div class="line">            .getDiskCache()</div><div class="line">            .put(key, new DataCacheWriter&lt;&gt;(encoder, toEncode, options));</div><div class="line">      &#125; finally &#123;</div><div class="line">        toEncode.unlock();</div><div class="line">      &#125;</div><div class="line">    &#125;</div></pre></td></tr></table></figure>
+<p>另一处是在SourceGenerator类中，</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"> public boolean startNext() &#123;</div><div class="line"> 		//缓存原始未修改的图片</div><div class="line">    if (dataToCache != null) &#123;</div><div class="line">      Object data = dataToCache;</div><div class="line">      dataToCache = null;</div><div class="line">      cacheData(data);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>进入 cacheData 方法中：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">private void cacheData(Object dataToCache) &#123;</div><div class="line">    try &#123;</div><div class="line">      Encoder&lt;Object&gt; encoder = helper.getSourceEncoder(dataToCache);</div><div class="line">      DataCacheWriter&lt;Object&gt; writer =</div><div class="line">          new DataCacheWriter&lt;&gt;(encoder, dataToCache, helper.getOptions());</div><div class="line">      originalKey = new DataCacheKey(loadData.sourceKey, helper.getSignature());</div><div class="line">      //把图片写入磁盘</div><div class="line">      helper.getDiskCache().put(originalKey, writer);</div><div class="line">    &#125; finally &#123;</div><div class="line">      loadData.fetcher.cleanup();</div><div class="line">    &#125;</div><div class="line">		...</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<h3 id="BitmapPool"><a href="#BitmapPool" class="headerlink" title="BitmapPool"></a>BitmapPool</h3><p>bitmap 的内存管理是一个很重要的话题。glide 使用了 BitmapPool 来提升 bitmap 的复用，减少 bitmap 分配内存和回收内存的次数，从而减少 GC 的频率、应用运行更加流畅。</p>
+<p>Android 官方提供 inBitmap 的 api 来复用 bitmap.实例如下:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">if (cache != null) &#123;</div><div class="line">    // Try to find a bitmap to use for inBitmap.</div><div class="line">    Bitmap inBitmap = cache.getBitmapFromReusableSet(options);</div><div class="line"></div><div class="line">    if (inBitmap != null) &#123;</div><div class="line">        // If a suitable bitmap has been found, set it as the value of</div><div class="line">        // inBitmap.</div><div class="line">        options.inBitmap = inBitmap;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>BitmapPool 有两个实现类: LruBitmapPool 和 BitmapPoolAdapter 类.BitmapPoolAdapter 的实现是一个空壳子，重点看一下 LruBitmapPool 类。LruBitmapPool 提供了 put 和 get 方法来操作 bitmap。LruBitmapPool 实际上是通过 LruPoolStrategy 对象来实现存取的。LruPoolStrategy 有多个实现类，不同的系统版本会使用不同的实现类:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">if (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.KITKAT) &#123;</div><div class="line">//android 4.4 版本以上</div><div class="line">     strategy = new SizeConfigStrategy();</div><div class="line">   &#125; else &#123;</div><div class="line">     strategy = new AttributeStrategy();</div><div class="line">   &#125;</div></pre></td></tr></table></figure>
+<p>因为目前大多数 app 的最低系统版本在 4.4 以上了，所以 重点看一下 SizeConfigStrategy ，先看 put 方法:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">public void put(Bitmap bitmap) &#123;</div><div class="line">	//获取图片所占内存的字节数</div><div class="line">  int size = Util.getBitmapByteSize(bitmap);</div><div class="line">  //key由size和Bitmap.Config组成</div><div class="line">  Key key = keyPool.get(size, bitmap.getConfig());</div><div class="line"></div><div class="line">//groupedMap的类型是 GroupedLinkedMap，类似 LinkedHashMap ，支持 LRU 算法。</div><div class="line">  groupedMap.put(key, bitmap);</div><div class="line"></div><div class="line">  NavigableMap&lt;Integer, Integer&gt; sizes = getSizesForConfig(bitmap.getConfig());</div><div class="line">  Integer current = sizes.get(key.size);</div><div class="line">  //记录该尺寸的图片的数量</div><div class="line">  sizes.put(key.size, current == null ? 1 : current + 1);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>GroupedLinkedMap 为 glide 自定义的数据结构，支持 LRU 算法，与 LinkedHashMap 类似。不同的是，LinkedHashMap 的 LRU 是针对的 value 值，而 GroupedLinkedMap 是针对的 key 值即图片的 size、而不是bitmap。</p>
+<p>接下来看一下 get 方法:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">public Bitmap get(int width, int height, Bitmap.Config config) &#123;</div><div class="line">  int size = Util.getBitmapByteSize(width, height, config);</div><div class="line">  //这行代码很关键。找到最接近目标值缓存图片的key</div><div class="line">  Key bestKey = findBestKey(size, config);</div><div class="line"></div><div class="line">  Bitmap result = groupedMap.get(bestKey);</div><div class="line">  if (result != null) &#123;</div><div class="line">    // Decrement must be called before reconfigure.</div><div class="line">    decrementBitmapOfSize(bestKey.size, result);</div><div class="line">    result.reconfigure(width, height, config);</div><div class="line">  &#125;</div><div class="line">  return result;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>findBestKey 方法实现如下:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line">private Key findBestKey(int size, Bitmap.Config config) &#123;</div><div class="line">   Key result = keyPool.get(size, config);</div><div class="line">   for (Bitmap.Config possibleConfig : getInConfigs(config)) &#123;</div><div class="line">     NavigableMap&lt;Integer, Integer&gt; sizesForPossibleConfig = getSizesForConfig(possibleConfig);</div><div class="line">     //返回大于等于size的最小值。</div><div class="line">     Integer possibleSize = sizesForPossibleConfig.ceilingKey(size);</div><div class="line">     //如果返回的缓存大小超过了目标值的 8 倍，缓存的使用率变低、就没必要复用缓存了</div><div class="line">     if (possibleSize != null &amp;&amp; possibleSize &lt;= size * MAX_SIZE_MULTIPLE) &#123;</div><div class="line">       if (possibleSize != size</div><div class="line">           || (possibleConfig == null ? config != null : !possibleConfig.equals(config))) &#123;</div><div class="line">         keyPool.offer(result);</div><div class="line">         result = keyPool.get(possibleSize, possibleConfig);</div><div class="line">       &#125;</div><div class="line">       break;</div><div class="line">     &#125;</div><div class="line">   &#125;</div><div class="line">   return result;</div><div class="line"> &#125;</div></pre></td></tr></table></figure>
+<h3 id="ArrayPool"><a href="#ArrayPool" class="headerlink" title="ArrayPool"></a>ArrayPool</h3><p>作用与 bitmapPool 类似，也是复用数组以减少内存的分配和回收，从而减少 GC 的频率、应用运行更加流畅。</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2021/01/04/glide流程/" rel="next" title="">
+                <i class="fa fa-chevron-left"></i> 
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2020/03/17/EventBus源码解析/" rel="prev" title="EventBus源码解析">
+                EventBus源码解析 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="https://raw.githubusercontent.com/2227056071/imges/master/phone.jpg"
+               alt="DaQiang" />
+          <p class="site-author-name" itemprop="name">DaQiang</p>
+           
+              <p class="site-description motion-element" itemprop="description">享受生命的精彩</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">15</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">3</span>
+                <span class="site-state-item-name">标签</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Glide源码解析之缓存"><span class="nav-number">1.</span> <span class="nav-text">Glide源码解析之缓存</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#读取内存缓存"><span class="nav-number">1.1.</span> <span class="nav-text">读取内存缓存</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#读取硬盘缓存"><span class="nav-number">1.2.</span> <span class="nav-text">读取硬盘缓存</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#写入内存缓存"><span class="nav-number">1.3.</span> <span class="nav-text">写入内存缓存</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#写入弱引用缓存分为两种情况"><span class="nav-number">1.3.1.</span> <span class="nav-text">写入弱引用缓存分为两种情况:</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#写入LRU缓存"><span class="nav-number">1.3.2.</span> <span class="nav-text">写入LRU缓存</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#写入硬盘缓存"><span class="nav-number">1.4.</span> <span class="nav-text">写入硬盘缓存</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#BitmapPool"><span class="nav-number">1.4.1.</span> <span class="nav-text">BitmapPool</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ArrayPool"><span class="nav-number">1.4.2.</span> <span class="nav-text">ArrayPool</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">DaQiang</span>
+</div>
+
+
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.0"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.0"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://huqiang.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'http://yoursite.com/2021/01/04/Glide源码解析之缓存/';
+          this.page.identifier = '2021/01/04/Glide源码解析之缓存/';
+          this.page.title = '';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://huqiang.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+  <script>AV.initialize("v18ufCuSLu5m1cLvghggolhj-gzGzoHsz", "iMokNFUCXO4BnEN3lV8c2xV7");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>
