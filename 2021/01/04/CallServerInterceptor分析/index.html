@@ -71,7 +71,7 @@
 <link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="Hexo, NexT" />
+  <meta name="keywords" content="源码解析," />
 
 
 
@@ -87,17 +87,19 @@
 
 
 
-<meta name="description" content="MVC :Model View ControllerModel 负责数据交互 android 中的 View 和 Controller 都是指 Activity,Activity 负责了ui 显示和 业务逻辑代码。 MVC 缺点：当业务规模比较大时，Controller 代码比较臃肿。一个  Activity 代码成千上万行的时候非常不便于阅读、维护。适用场景：规模比较小的项目 MVP :Mode">
-<meta name="keywords">
+<meta name="description" content="连接建立完成之后就要发送数据了，发送、接收数据靠 CallServerInterceptor 完成. 流程大概分为 4 步: 写入请求头、写入请求体、读取响应头、读取响应体，由 HttpCodec 来完成这几步操作。 1234567891011121314151617181920212223242526272829303132333435363738394041424344454647484950">
+<meta name="keywords" content="源码解析">
 <meta property="og:type" content="article">
-<meta property="og:title" content="MVC、MVP、MVVM">
-<meta property="og:url" content="http://yoursite.com/2018/06/13/MVC、MVP、MVVM/index.html">
+<meta property="og:title" content="“OKHttp拦截器CallServerInterceptor分析">
+<meta property="og:url" content="http://yoursite.com/2021/01/04/CallServerInterceptor分析/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="MVC :Model View ControllerModel 负责数据交互 android 中的 View 和 Controller 都是指 Activity,Activity 负责了ui 显示和 业务逻辑代码。 MVC 缺点：当业务规模比较大时，Controller 代码比较臃肿。一个  Activity 代码成千上万行的时候非常不便于阅读、维护。适用场景：规模比较小的项目 MVP :Mode">
-<meta property="og:updated_time" content="2018-06-24T02:02:27.639Z">
+<meta property="og:description" content="连接建立完成之后就要发送数据了，发送、接收数据靠 CallServerInterceptor 完成. 流程大概分为 4 步: 写入请求头、写入请求体、读取响应头、读取响应体，由 HttpCodec 来完成这几步操作。 1234567891011121314151617181920212223242526272829303132333435363738394041424344454647484950">
+<meta property="og:image" content="https://upload-images.jianshu.io/upload_images/5713484-35a9989e893171f1.png">
+<meta property="og:updated_time" content="2021-01-04T12:44:26.778Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="MVC、MVP、MVVM">
-<meta name="twitter:description" content="MVC :Model View ControllerModel 负责数据交互 android 中的 View 和 Controller 都是指 Activity,Activity 负责了ui 显示和 业务逻辑代码。 MVC 缺点：当业务规模比较大时，Controller 代码比较臃肿。一个  Activity 代码成千上万行的时候非常不便于阅读、维护。适用场景：规模比较小的项目 MVP :Mode">
+<meta name="twitter:title" content="“OKHttp拦截器CallServerInterceptor分析">
+<meta name="twitter:description" content="连接建立完成之后就要发送数据了，发送、接收数据靠 CallServerInterceptor 完成. 流程大概分为 4 步: 写入请求头、写入请求体、读取响应头、读取响应体，由 HttpCodec 来完成这几步操作。 1234567891011121314151617181920212223242526272829303132333435363738394041424344454647484950">
+<meta name="twitter:image" content="https://upload-images.jianshu.io/upload_images/5713484-35a9989e893171f1.png">
 
 
 
@@ -125,13 +127,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/2018/06/13/MVC、MVP、MVVM/"/>
+  <link rel="canonical" href="http://yoursite.com/2021/01/04/CallServerInterceptor分析/"/>
 
 
 
 
 
-  <title> MVC、MVP、MVVM | Hexo </title>
+  <title> “OKHttp拦截器CallServerInterceptor分析 | Hexo </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
@@ -250,7 +252,7 @@
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/06/13/MVC、MVP、MVVM/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/01/04/CallServerInterceptor分析/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="DaQiang">
@@ -271,7 +273,7 @@
             
             
               
-                MVC、MVP、MVVM
+                “OKHttp拦截器CallServerInterceptor分析
               
             
           </h1>
@@ -286,8 +288,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-06-13T22:17:13+08:00">
-                2018-06-13
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-01-04T00:00:00+08:00">
+                2021-01-04
               </time>
             
 
@@ -305,9 +307,9 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2018/06/13/MVC、MVP、MVVM/#comments" itemprop="discussionUrl">
+                <a href="/2021/01/04/CallServerInterceptor分析/#comments" itemprop="discussionUrl">
                   <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2018/06/13/MVC、MVP、MVVM/" itemprop="commentCount"></span>
+                        data-disqus-identifier="2021/01/04/CallServerInterceptor分析/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -315,7 +317,7 @@
 
           
           
-             <span id="/2018/06/13/MVC、MVP、MVVM/" class="leancloud_visitors" data-flag-title="MVC、MVP、MVVM">
+             <span id="/2021/01/04/CallServerInterceptor分析/" class="leancloud_visitors" data-flag-title="“OKHttp拦截器CallServerInterceptor分析">
                <span class="post-meta-divider">|</span>
                <span class="post-meta-item-icon">
                  <i class="fa fa-eye"></i>
@@ -344,12 +346,12 @@
       
 
       
-        <p>MVC :<br>Model View Controller<br>Model 负责数据交互 android 中的 View 和 Controller 都是指 Activity,Activity 负责了<br>ui 显示和 业务逻辑代码。</p>
-<p>MVC 缺点：当业务规模比较大时，Controller 代码比较臃肿。一个  Activity 代码成千上万行的时候<br>非常不便于阅读、维护。<br>适用场景：规模比较小的项目</p>
-<p>MVP :<br>Model View Presenter<br>Model 负责数据交互 android 中的 View 指 Activity,Activity 负责了<br>ui 显示，Presenter 是指跟 android api 无关的业务逻辑代码。<br>Presenter 在中间，通过 View 接口和 View 进行交互</p>
-<p>MVP 优点：View 层只负责 ui 显示，减少了耦合度。<br>MVP 缺点：View 和 Presenter 互相引用并互相回调，代码不美观。当 View 发生变化时，Presenter<br>可能做相应的变化（改变更新 ui 的方法，改变回调的方法等），view 和 Presenter 之间还是存<br>在一定的耦合度，导致代码更改量比较大。</p>
-<p>MVVM:<br>View ViewModel Model<br>ViewModel 不再持有 View 的引用，通过绑定关系自动更新 ui ，ui的变化也自动反馈到<br>ViewModel</p>
-<p>MVVM 优点：<br>低耦合度<br>MVVM模式中，数据是独立于UI的，ViewModel只负责处理和提供数据，UI想怎么处理数据都由UI自己决定，ViewModel 不涉及任何和UI相关的事也不持有UI控件的引用，即使控件改变（TextView<br>换成 EditText）ViewModel 几乎不需要更改任何代码，专注自己的数据处理就可以了。</p>
+        <p>连接建立完成之后就要发送数据了，发送、接收数据靠 CallServerInterceptor 完成.</p>
+<p>流程大概分为 4 步:</p>
+<p>写入请求头、写入请求体、读取响应头、读取响应体，由 HttpCodec 来完成这几步操作。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div></pre></td><td class="code"><pre><div class="line">@Override public Response intercept(Chain chain) throws IOException &#123;</div><div class="line">  RealInterceptorChain realChain = (RealInterceptorChain) chain;</div><div class="line">  HttpCodec httpCodec = realChain.httpStream();</div><div class="line">  StreamAllocation streamAllocation = realChain.streamAllocation();</div><div class="line">  RealConnection connection = (RealConnection) realChain.connection();</div><div class="line">  Request request = realChain.request();</div><div class="line"></div><div class="line">  long sentRequestMillis = System.currentTimeMillis();</div><div class="line"></div><div class="line">  realChain.eventListener().requestHeadersStart(realChain.call());</div><div class="line">  // 写入请求头</div><div class="line">  httpCodec.writeRequestHeaders(request);</div><div class="line">  realChain.eventListener().requestHeadersEnd(realChain.call(), request);</div><div class="line"></div><div class="line">  Response.Builder responseBuilder = null;</div><div class="line">  if (HttpMethod.permitsRequestBody(request.method()) &amp;&amp; request.body() != null) &#123;</div><div class="line">    // If there&apos;s a &quot;Expect: 100-continue&quot; header on the request, wait for a &quot;HTTP/1.1 100</div><div class="line">    // Continue&quot; response before transmitting the request body. If we don&apos;t get that, return</div><div class="line">    // what we did get (such as a 4xx response) without ever transmitting the request body.</div><div class="line">    if (&quot;100-continue&quot;.equalsIgnoreCase(request.header(&quot;Expect&quot;))) &#123;</div><div class="line">      httpCodec.flushRequest();</div><div class="line">      realChain.eventListener().responseHeadersStart(realChain.call());</div><div class="line">      responseBuilder = httpCodec.readResponseHeaders(true);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    if (responseBuilder == null) &#123;</div><div class="line">      // Write the request body if the &quot;Expect: 100-continue&quot; expectation was met.</div><div class="line">      realChain.eventListener().requestBodyStart(realChain.call());</div><div class="line">      long contentLength = request.body().contentLength();</div><div class="line">      // 写入请求体</div><div class="line">      CountingSink requestBodyOut =</div><div class="line">          new CountingSink(httpCodec.createRequestBody(request, contentLength));</div><div class="line">      BufferedSink bufferedRequestBody = Okio.buffer(requestBodyOut);</div><div class="line"></div><div class="line">      request.body().writeTo(bufferedRequestBody);</div><div class="line">      bufferedRequestBody.close();</div><div class="line">      realChain.eventListener()</div><div class="line">          .requestBodyEnd(realChain.call(), requestBodyOut.successfulCount);</div><div class="line">    &#125; else if (!connection.isMultiplexed()) &#123;</div><div class="line">      // If the &quot;Expect: 100-continue&quot; expectation wasn&apos;t met, prevent the HTTP/1 connection</div><div class="line">      // from being reused. Otherwise we&apos;re still obligated to transmit the request body to</div><div class="line">      // leave the connection in a consistent state.</div><div class="line">      streamAllocation.noNewStreams();</div><div class="line">    &#125;</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  httpCodec.finishRequest();</div><div class="line"></div><div class="line">	// 读取响应头</div><div class="line">  if (responseBuilder == null) &#123;</div><div class="line">    realChain.eventListener().responseHeadersStart(realChain.call());</div><div class="line">    responseBuilder = httpCodec.readResponseHeaders(false);</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  Response response = responseBuilder</div><div class="line">      .request(request)</div><div class="line">      .handshake(streamAllocation.connection().handshake())</div><div class="line">      .sentRequestAtMillis(sentRequestMillis)</div><div class="line">      .receivedResponseAtMillis(System.currentTimeMillis())</div><div class="line">      .build();</div><div class="line"></div><div class="line">  realChain.eventListener()</div><div class="line">      .responseHeadersEnd(realChain.call(), response);</div><div class="line"></div><div class="line">	// 读取响应体</div><div class="line">  int code = response.code();</div><div class="line">  if (forWebSocket &amp;&amp; code == 101) &#123;</div><div class="line">    // Connection is upgrading, but we need to ensure interceptors see a non-null response body.</div><div class="line">    response = response.newBuilder()</div><div class="line">        .body(Util.EMPTY_RESPONSE)</div><div class="line">        .build();</div><div class="line">  &#125; else &#123;</div><div class="line">    response = response.newBuilder()</div><div class="line">        .body(httpCodec.openResponseBody(response))</div><div class="line">        .build();</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  if (&quot;close&quot;.equalsIgnoreCase(response.request().header(&quot;Connection&quot;))</div><div class="line">      || &quot;close&quot;.equalsIgnoreCase(response.header(&quot;Connection&quot;))) &#123;</div><div class="line">    streamAllocation.noNewStreams();</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  if ((code == 204 || code == 205) &amp;&amp; response.body().contentLength() &gt; 0) &#123;</div><div class="line">    throw new ProtocolException(</div><div class="line">        &quot;HTTP &quot; + code + &quot; had non-zero Content-Length: &quot; + response.body().contentLength());</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  return response;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>最后看一下整体的流程图:</p>
+<p><img src="https://upload-images.jianshu.io/upload_images/5713484-35a9989e893171f1.png" alt="流程图"></p>
 
       
     </div>
@@ -377,6 +379,12 @@
 
     <footer class="post-footer">
       
+        <div class="post-tags">
+          
+            <a href="/tags/源码解析/" rel="tag"># 源码解析</a>
+          
+        </div>
+      
 
       
         
@@ -386,8 +394,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2018/12/23/Handler/" rel="next" title="Handler">
-                <i class="fa fa-chevron-left"></i> Handler
+              <a href="/2021/01/04/OkHttp整体流程图/" rel="next" title="“OKHttp整体流程分析">
+                <i class="fa fa-chevron-left"></i> “OKHttp整体流程分析
               </a>
             
           </div>
@@ -396,8 +404,8 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2018/06/03/TCP与UDP相关/" rel="prev" title="TCP与UDP相关">
-                TCP与UDP相关 <i class="fa fa-chevron-right"></i>
+              <a href="/2021/01/04/ConnectInterceptor解析/" rel="prev" title="“OKHttp拦截器之ConnectInterceptor分析">
+                “OKHttp拦截器之ConnectInterceptor分析 <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -641,9 +649,9 @@
     
       <script type="text/javascript">
         var disqus_config = function () {
-          this.page.url = 'http://yoursite.com/2018/06/13/MVC、MVP、MVVM/';
-          this.page.identifier = '2018/06/13/MVC、MVP、MVVM/';
-          this.page.title = 'MVC、MVP、MVVM';
+          this.page.url = 'http://yoursite.com/2021/01/04/CallServerInterceptor分析/';
+          this.page.identifier = '2021/01/04/CallServerInterceptor分析/';
+          this.page.title = '“OKHttp拦截器CallServerInterceptor分析';
         };
         var d = document, s = d.createElement('script');
         s.src = 'https://huqiang.disqus.com/embed.js';

@@ -71,7 +71,7 @@
 <link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="Hexo, NexT" />
+  <meta name="keywords" content="源码解析," />
 
 
 
@@ -87,17 +87,19 @@
 
 
 
-<meta name="description" content="MVC :Model View ControllerModel 负责数据交互 android 中的 View 和 Controller 都是指 Activity,Activity 负责了ui 显示和 业务逻辑代码。 MVC 缺点：当业务规模比较大时，Controller 代码比较臃肿。一个  Activity 代码成千上万行的时候非常不便于阅读、维护。适用场景：规模比较小的项目 MVP :Mode">
-<meta name="keywords">
+<meta name="description" content="OkHttp 的使用如下: 1234567891011OkHttpClient client = new OkHttpClient();String run(String url) throws IOException &amp;#123;  Request request = new Request.Builder()      .url(url)      .build();  try (Respon">
+<meta name="keywords" content="源码解析">
 <meta property="og:type" content="article">
-<meta property="og:title" content="MVC、MVP、MVVM">
-<meta property="og:url" content="http://yoursite.com/2018/06/13/MVC、MVP、MVVM/index.html">
+<meta property="og:title" content="“OKHttp整体流程分析">
+<meta property="og:url" content="http://yoursite.com/2021/01/04/OkHttp整体流程图/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="MVC :Model View ControllerModel 负责数据交互 android 中的 View 和 Controller 都是指 Activity,Activity 负责了ui 显示和 业务逻辑代码。 MVC 缺点：当业务规模比较大时，Controller 代码比较臃肿。一个  Activity 代码成千上万行的时候非常不便于阅读、维护。适用场景：规模比较小的项目 MVP :Mode">
-<meta property="og:updated_time" content="2018-06-24T02:02:27.639Z">
+<meta property="og:description" content="OkHttp 的使用如下: 1234567891011OkHttpClient client = new OkHttpClient();String run(String url) throws IOException &amp;#123;  Request request = new Request.Builder()      .url(url)      .build();  try (Respon">
+<meta property="og:image" content="http://yoursite.com/Users/huqiang/Downloads/intercept.png">
+<meta property="og:updated_time" content="2021-01-04T12:43:00.048Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="MVC、MVP、MVVM">
-<meta name="twitter:description" content="MVC :Model View ControllerModel 负责数据交互 android 中的 View 和 Controller 都是指 Activity,Activity 负责了ui 显示和 业务逻辑代码。 MVC 缺点：当业务规模比较大时，Controller 代码比较臃肿。一个  Activity 代码成千上万行的时候非常不便于阅读、维护。适用场景：规模比较小的项目 MVP :Mode">
+<meta name="twitter:title" content="“OKHttp整体流程分析">
+<meta name="twitter:description" content="OkHttp 的使用如下: 1234567891011OkHttpClient client = new OkHttpClient();String run(String url) throws IOException &amp;#123;  Request request = new Request.Builder()      .url(url)      .build();  try (Respon">
+<meta name="twitter:image" content="http://yoursite.com/Users/huqiang/Downloads/intercept.png">
 
 
 
@@ -125,13 +127,13 @@
 
 
 
-  <link rel="canonical" href="http://yoursite.com/2018/06/13/MVC、MVP、MVVM/"/>
+  <link rel="canonical" href="http://yoursite.com/2021/01/04/OkHttp整体流程图/"/>
 
 
 
 
 
-  <title> MVC、MVP、MVVM | Hexo </title>
+  <title> “OKHttp整体流程分析 | Hexo </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
@@ -250,7 +252,7 @@
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/06/13/MVC、MVP、MVVM/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/01/04/OkHttp整体流程图/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="DaQiang">
@@ -271,7 +273,7 @@
             
             
               
-                MVC、MVP、MVVM
+                “OKHttp整体流程分析
               
             
           </h1>
@@ -286,8 +288,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-06-13T22:17:13+08:00">
-                2018-06-13
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-01-04T00:00:00+08:00">
+                2021-01-04
               </time>
             
 
@@ -305,9 +307,9 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2018/06/13/MVC、MVP、MVVM/#comments" itemprop="discussionUrl">
+                <a href="/2021/01/04/OkHttp整体流程图/#comments" itemprop="discussionUrl">
                   <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2018/06/13/MVC、MVP、MVVM/" itemprop="commentCount"></span>
+                        data-disqus-identifier="2021/01/04/OkHttp整体流程图/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -315,7 +317,7 @@
 
           
           
-             <span id="/2018/06/13/MVC、MVP、MVVM/" class="leancloud_visitors" data-flag-title="MVC、MVP、MVVM">
+             <span id="/2021/01/04/OkHttp整体流程图/" class="leancloud_visitors" data-flag-title="“OKHttp整体流程分析">
                <span class="post-meta-divider">|</span>
                <span class="post-meta-item-icon">
                  <i class="fa fa-eye"></i>
@@ -344,12 +346,21 @@
       
 
       
-        <p>MVC :<br>Model View Controller<br>Model 负责数据交互 android 中的 View 和 Controller 都是指 Activity,Activity 负责了<br>ui 显示和 业务逻辑代码。</p>
-<p>MVC 缺点：当业务规模比较大时，Controller 代码比较臃肿。一个  Activity 代码成千上万行的时候<br>非常不便于阅读、维护。<br>适用场景：规模比较小的项目</p>
-<p>MVP :<br>Model View Presenter<br>Model 负责数据交互 android 中的 View 指 Activity,Activity 负责了<br>ui 显示，Presenter 是指跟 android api 无关的业务逻辑代码。<br>Presenter 在中间，通过 View 接口和 View 进行交互</p>
-<p>MVP 优点：View 层只负责 ui 显示，减少了耦合度。<br>MVP 缺点：View 和 Presenter 互相引用并互相回调，代码不美观。当 View 发生变化时，Presenter<br>可能做相应的变化（改变更新 ui 的方法，改变回调的方法等），view 和 Presenter 之间还是存<br>在一定的耦合度，导致代码更改量比较大。</p>
-<p>MVVM:<br>View ViewModel Model<br>ViewModel 不再持有 View 的引用，通过绑定关系自动更新 ui ，ui的变化也自动反馈到<br>ViewModel</p>
-<p>MVVM 优点：<br>低耦合度<br>MVVM模式中，数据是独立于UI的，ViewModel只负责处理和提供数据，UI想怎么处理数据都由UI自己决定，ViewModel 不涉及任何和UI相关的事也不持有UI控件的引用，即使控件改变（TextView<br>换成 EditText）ViewModel 几乎不需要更改任何代码，专注自己的数据处理就可以了。</p>
+        <p>OkHttp 的使用如下:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">OkHttpClient client = new OkHttpClient();</div><div class="line"></div><div class="line">String run(String url) throws IOException &#123;</div><div class="line">  Request request = new Request.Builder()</div><div class="line">      .url(url)</div><div class="line">      .build();</div><div class="line"></div><div class="line">  try (Response response = client.newCall(request).execute()) &#123;</div><div class="line">    return response.body().string();</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>newCall(request) 方法会返回 Call 对象，Call 接口类只有一个实现类 RealCall,看一下 RealCall 的execute() 方法。</p>
+<p>RealCall 类的 execute() 方法调用了 getResponseWithInterceptorChain() 获取响应结果,getResponseWithInterceptorChain 方法如下:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line">// Build a full stack of interceptors.</div><div class="line">	// 构建拦截器集合</div><div class="line">  List&lt;Interceptor&gt; interceptors = new ArrayList&lt;&gt;();</div><div class="line">  interceptors.addAll(client.interceptors());</div><div class="line">  interceptors.add(retryAndFollowUpInterceptor);</div><div class="line">  interceptors.add(new BridgeInterceptor(client.cookieJar()));</div><div class="line">  interceptors.add(new CacheInterceptor(client.internalCache()));</div><div class="line">  interceptors.add(new ConnectInterceptor(client));</div><div class="line">  if (!forWebSocket) &#123;</div><div class="line">    interceptors.addAll(client.networkInterceptors());</div><div class="line">  &#125;</div><div class="line">  interceptors.add(new CallServerInterceptor(forWebSocket));</div><div class="line"></div><div class="line">  Interceptor.Chain chain = new RealInterceptorChain(interceptors, null, null, null, 0,</div><div class="line">      originalRequest, this, eventListener, client.connectTimeoutMillis(),</div><div class="line">      client.readTimeoutMillis(), client.writeTimeoutMillis());</div><div class="line"></div><div class="line">  return chain.proceed(originalRequest);</div></pre></td></tr></table></figure>
+<p>采用类似职责链模式的方法，依次执行到各个拦截器的 intercept 方法。客户端最上层的请求数据依次经过各个拦截器处理后发给服务器，服务器的响应数据依次经过各个拦截器后返回给客户端，类似 TCP/IP 分层协议中对数据的处理。代码大致流程如下：</p>
+<p>respone = Chain0.proceed</p>
+<p>interceptor0.intercept(chain1) Chain1.proceed</p>
+<p> interceptor1.intercept(chain2) Chain2.proceed</p>
+<p> interceptor2.intercept(chain3)</p>
+<p>…</p>
+<p>整体流程图如下：</p>
+<p><img src="/Users/huqiang/Downloads/intercept.png" alt="流程图"></p>
+<p>OkHttp 支持自定义拦截器，自定义拦截器类型分为两种:  Application interceptor 和 Network Interceptor。应用拦截器只会被执行一次，网络拦截器可能会被执行多次(由于重定向和失败重试) 。</p>
+<p>后面会依次分析各个拦截器的逻辑。OkHttp 本质是个 http 客户端。关于 http 内容可参考 rfc 文档、MDN web docs。</p>
 
       
     </div>
@@ -377,6 +388,12 @@
 
     <footer class="post-footer">
       
+        <div class="post-tags">
+          
+            <a href="/tags/源码解析/" rel="tag"># 源码解析</a>
+          
+        </div>
+      
 
       
         
@@ -386,8 +403,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2018/12/23/Handler/" rel="next" title="Handler">
-                <i class="fa fa-chevron-left"></i> Handler
+              <a href="/2021/01/04/Glide源码解析之缓存/" rel="next" title="">
+                <i class="fa fa-chevron-left"></i> 
               </a>
             
           </div>
@@ -396,8 +413,8 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2018/06/03/TCP与UDP相关/" rel="prev" title="TCP与UDP相关">
-                TCP与UDP相关 <i class="fa fa-chevron-right"></i>
+              <a href="/2021/01/04/CallServerInterceptor分析/" rel="prev" title="“OKHttp拦截器CallServerInterceptor分析">
+                “OKHttp拦截器CallServerInterceptor分析 <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -641,9 +658,9 @@
     
       <script type="text/javascript">
         var disqus_config = function () {
-          this.page.url = 'http://yoursite.com/2018/06/13/MVC、MVP、MVVM/';
-          this.page.identifier = '2018/06/13/MVC、MVP、MVVM/';
-          this.page.title = 'MVC、MVP、MVVM';
+          this.page.url = 'http://yoursite.com/2021/01/04/OkHttp整体流程图/';
+          this.page.identifier = '2021/01/04/OkHttp整体流程图/';
+          this.page.title = '“OKHttp整体流程分析';
         };
         var d = document, s = d.createElement('script');
         s.src = 'https://huqiang.disqus.com/embed.js';
