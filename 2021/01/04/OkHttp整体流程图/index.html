@@ -94,12 +94,12 @@
 <meta property="og:url" content="http://yoursite.com/2021/01/04/OkHttp整体流程图/index.html">
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="OkHttp 的使用如下: 1234567891011OkHttpClient client = new OkHttpClient();String run(String url) throws IOException &amp;#123;  Request request = new Request.Builder()      .url(url)      .build();  try (Respon">
-<meta property="og:image" content="http://yoursite.com/Users/huqiang/Downloads/intercept.png">
-<meta property="og:updated_time" content="2021-01-04T12:51:16.578Z">
+<meta property="og:image" content="https://github.com/2227056071/imges/blob/master/intercept.png">
+<meta property="og:updated_time" content="2021-01-04T13:14:56.944Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="OKHttp整体流程分析">
 <meta name="twitter:description" content="OkHttp 的使用如下: 1234567891011OkHttpClient client = new OkHttpClient();String run(String url) throws IOException &amp;#123;  Request request = new Request.Builder()      .url(url)      .build();  try (Respon">
-<meta name="twitter:image" content="http://yoursite.com/Users/huqiang/Downloads/intercept.png">
+<meta name="twitter:image" content="https://github.com/2227056071/imges/blob/master/intercept.png">
 
 
 
@@ -358,7 +358,7 @@
 <p> interceptor2.intercept(chain3)</p>
 <p>…</p>
 <p>整体流程图如下：</p>
-<p><img src="/Users/huqiang/Downloads/intercept.png" alt="流程图"></p>
+<p><img src="https://github.com/2227056071/imges/blob/master/intercept.png" alt="流程图"></p>
 <p>OkHttp 支持自定义拦截器，自定义拦截器类型分为两种:  Application interceptor 和 Network Interceptor。应用拦截器只会被执行一次，网络拦截器可能会被执行多次(由于重定向和失败重试) 。</p>
 <p>后面会依次分析各个拦截器的逻辑。OkHttp 本质是个 http 客户端。关于 http 内容可参考 rfc 文档、MDN web docs。</p>
 
@@ -403,14 +403,18 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
+              <a href="/2021/01/04/BridgeInterceptor分析/" rel="next" title="OKHttp拦截器BridgeInterceptor、CacheInterceptor分析">
+                <i class="fa fa-chevron-left"></i> OKHttp拦截器BridgeInterceptor、CacheInterceptor分析
+              </a>
+            
           </div>
 
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2021/01/04/CallServerInterceptor分析/" rel="prev" title="OKHttp拦截器CallServerInterceptor分析">
-                OKHttp拦截器CallServerInterceptor分析 <i class="fa fa-chevron-right"></i>
+              <a href="/2021/01/04/ConnectInterceptor解析/" rel="prev" title="OKHttp拦截器之ConnectInterceptor分析">
+                OKHttp拦截器之ConnectInterceptor分析 <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
