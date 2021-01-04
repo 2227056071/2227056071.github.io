@@ -71,7 +71,7 @@
 <link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="Hexo, NexT" />
+  <meta name="keywords" content="源码解析," />
 
 
 
@@ -88,16 +88,16 @@
 
 
 <meta name="description" content="glide为什么选择 glide 框架？Picasso 框架已无人维护。直接 pass 掉。 fresco 框架用法较复杂，不如 glide 的用法简洁。优势是能大大减少 OOM 的概率，因为图片不在放在 Java Heap 中，而是放在 Ashmem(匿名共享内存)中。适用于高性能加载大量图片的场景。sdk 大小为 500 kb. glide 框架sdk大小 440 Kb，在可以接受的范围内。适">
-<meta name="keywords">
+<meta name="keywords" content="源码解析">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Hexo">
+<meta property="og:title" content="Glide源码解析">
 <meta property="og:url" content="http://yoursite.com/2021/01/04/glide流程/index.html">
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="glide为什么选择 glide 框架？Picasso 框架已无人维护。直接 pass 掉。 fresco 框架用法较复杂，不如 glide 的用法简洁。优势是能大大减少 OOM 的概率，因为图片不在放在 Java Heap 中，而是放在 Ashmem(匿名共享内存)中。适用于高性能加载大量图片的场景。sdk 大小为 500 kb. glide 框架sdk大小 440 Kb，在可以接受的范围内。适">
 <meta property="og:image" content="https://raw.githubusercontent.com/JsonChao/Awesome-Third-Library-Source-Analysis/master/ScreenShots/Glide%E6%A1%86%E6%9E%B6%E5%9B%BE.jpg">
-<meta property="og:updated_time" content="2021-01-04T12:32:00.431Z">
+<meta property="og:updated_time" content="2021-01-04T12:51:25.298Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Hexo">
+<meta name="twitter:title" content="Glide源码解析">
 <meta name="twitter:description" content="glide为什么选择 glide 框架？Picasso 框架已无人维护。直接 pass 掉。 fresco 框架用法较复杂，不如 glide 的用法简洁。优势是能大大减少 OOM 的概率，因为图片不在放在 Java Heap 中，而是放在 Ashmem(匿名共享内存)中。适用于高性能加载大量图片的场景。sdk 大小为 500 kb. glide 框架sdk大小 440 Kb，在可以接受的范围内。适">
 <meta name="twitter:image" content="https://raw.githubusercontent.com/JsonChao/Awesome-Third-Library-Source-Analysis/master/ScreenShots/Glide%E6%A1%86%E6%9E%B6%E5%9B%BE.jpg">
 
@@ -133,7 +133,7 @@
 
 
 
-  <title>  | Hexo </title>
+  <title> Glide源码解析 | Hexo </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
@@ -273,7 +273,7 @@
             
             
               
-                
+                Glide源码解析
               
             
           </h1>
@@ -288,7 +288,7 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-01-04T20:36:33+08:00">
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-01-04T00:00:00+08:00">
                 2021-01-04
               </time>
             
@@ -317,7 +317,7 @@
 
           
           
-             <span id="/2021/01/04/glide流程/" class="leancloud_visitors" data-flag-title="">
+             <span id="/2021/01/04/glide流程/" class="leancloud_visitors" data-flag-title="Glide源码解析">
                <span class="post-meta-divider">|</span>
                <span class="post-meta-item-icon">
                  <i class="fa fa-eye"></i>
@@ -366,15 +366,15 @@
 <p>​    使用 engineJob 启动 decodeJob,run方法里调用 dataFetcher 的 loadData方法加载数据(从网络、本地加载)，获取完成后使用 Encoder 将数据存入磁盘缓存文件中（sourceGenerator），同时使用对应的解码器将原始数据转换为相应的资源文件.</p>
 <p>当资源加载完成时，会执行 SingleRequest类 的 onResourceReady 方法。依次跟下去会执行 target.onResourceReady 方法:</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">target.onResourceReady(result, animation)</div></pre></td></tr></table></figure>
+<p>onResourceReady 方法有多种实现，以 ImageViewTarget 类的实现为例:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">public void onResourceReady(@NonNull Z resource, @Nullable Transition&lt;? super Z&gt; transition) &#123;</div><div class="line">  if (transition == null || !transition.transition(resource, this)) &#123;</div><div class="line">    setResourceInternal(resource);</div><div class="line">  &#125; else &#123;</div><div class="line">    maybeUpdateAnimatable(resource);</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>进入 setResourceInternal 方法，发现其调用了一个抽象方法 setResource:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">protected abstract void setResource(@Nullable Z resource);</div></pre></td></tr></table></figure>
+<p>setResource 方法也有多个实现。看一下 BitmapImageViewTarget 类的实现:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">protected void setResource(Bitmap resource) &#123;</div><div class="line">   view.setImageBitmap(resource);</div><div class="line"> &#125;</div></pre></td></tr></table></figure>
+<p>可以看到，上面这行代码调用 android 系统 API  把图片资源设置给 view 以完成显示工作。</p>
 </li>
 </ol>
-<p>   onResourceReady 方法有多种实现，以 ImageViewTarget 类的实现为例:</p>
-   <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">public void onResourceReady(@NonNull Z resource, @Nullable Transition&lt;? super Z&gt; transition) &#123;</div><div class="line">  if (transition == null || !transition.transition(resource, this)) &#123;</div><div class="line">    setResourceInternal(resource);</div><div class="line">  &#125; else &#123;</div><div class="line">    maybeUpdateAnimatable(resource);</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>   进入 setResourceInternal 方法，发现其调用了一个抽象方法 setResource:</p>
-   <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">protected abstract void setResource(@Nullable Z resource);</div></pre></td></tr></table></figure>
-<p>   setResource 方法也有多个实现。看一下 BitmapImageViewTarget 类的实现:</p>
-   <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">protected void setResource(Bitmap resource) &#123;</div><div class="line">   view.setImageBitmap(resource);</div><div class="line"> &#125;</div></pre></td></tr></table></figure>
-<p>   可以看到，上面这行代码调用 android 系统 API  把图片资源设置给 view 以完成显示工作。</p>
 
       
     </div>
@@ -402,6 +402,12 @@
 
     <footer class="post-footer">
       
+        <div class="post-tags">
+          
+            <a href="/tags/源码解析/" rel="tag"># 源码解析</a>
+          
+        </div>
+      
 
       
         
@@ -411,14 +417,18 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
+              <a href="/2021/01/04/Glide源码解析之缓存/" rel="next" title="Glide源码解析之缓存">
+                <i class="fa fa-chevron-left"></i> Glide源码解析之缓存
+              </a>
+            
           </div>
 
           <span class="post-nav-divider"></span>
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/2021/01/04/Glide源码解析之缓存/" rel="prev" title="">
-                 <i class="fa fa-chevron-right"></i>
+              <a href="/2021/01/04/RetryAndFollowUpInterceptor拦截器分析/" rel="prev" title="OKHttp拦截器RetryAndFollowUpInterceptor分析">
+                OKHttp拦截器RetryAndFollowUpInterceptor分析 <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -689,7 +699,7 @@
         var disqus_config = function () {
           this.page.url = 'http://yoursite.com/2021/01/04/glide流程/';
           this.page.identifier = '2021/01/04/glide流程/';
-          this.page.title = '';
+          this.page.title = 'Glide源码解析';
         };
         var d = document, s = d.createElement('script');
         s.src = 'https://huqiang.disqus.com/embed.js';
