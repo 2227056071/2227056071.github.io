@@ -1,0 +1,856 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.0" />
+
+
+
+
+
+
+<meta name="description" content="AndResGuard 源码解析AndResGuard 简介AndResGuard 是一个开源工具，作用是帮助缩小 APK 大小。它的原理类似 Java Proguard，但是只针对资源。他会将原本冗长的资源路径变短，例如将 res/drawable/wechat 变为 r/d/a，同时支持压缩资源文件。 AndResGuard 不涉及编译过程，只需输入一个apk(无论签名与否，debug版，re">
+<meta name="keywords">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Hexo">
+<meta property="og:url" content="http://yoursite.com/2021/01/28/AndResGuard 源码解析/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="AndResGuard 源码解析AndResGuard 简介AndResGuard 是一个开源工具，作用是帮助缩小 APK 大小。它的原理类似 Java Proguard，但是只针对资源。他会将原本冗长的资源路径变短，例如将 res/drawable/wechat 变为 r/d/a，同时支持压缩资源文件。 AndResGuard 不涉及编译过程，只需输入一个apk(无论签名与否，debug版，re">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2018/5/2/1631cf9f45c98d2f?imageslim">
+<meta property="og:updated_time" content="2021-01-28T09:28:49.001Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Hexo">
+<meta name="twitter:description" content="AndResGuard 源码解析AndResGuard 简介AndResGuard 是一个开源工具，作用是帮助缩小 APK 大小。它的原理类似 Java Proguard，但是只针对资源。他会将原本冗长的资源路径变短，例如将 res/drawable/wechat 变为 r/d/a，同时支持压缩资源文件。 AndResGuard 不涉及编译过程，只需输入一个apk(无论签名与否，debug版，re">
+<meta name="twitter:image" content="https://user-gold-cdn.xitu.io/2018/5/2/1631cf9f45c98d2f?imageslim">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"right","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2021/01/28/AndResGuard 源码解析/"/>
+
+
+
+
+
+  <title>  | Hexo </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-right page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/01/28/AndResGuard 源码解析/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="DaQiang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://raw.githubusercontent.com/2227056071/imges/master/phone.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-01-28T17:29:40+08:00">
+                2021-01-28
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2021/01/28/AndResGuard 源码解析/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2021/01/28/AndResGuard 源码解析/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/2021/01/28/AndResGuard 源码解析/" class="leancloud_visitors" data-flag-title="">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数 </span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="AndResGuard-源码解析"><a href="#AndResGuard-源码解析" class="headerlink" title="AndResGuard 源码解析"></a>AndResGuard 源码解析</h2><h3 id="AndResGuard-简介"><a href="#AndResGuard-简介" class="headerlink" title="AndResGuard 简介"></a>AndResGuard 简介</h3><p>AndResGuard 是一个开源工具，作用是帮助缩小 APK 大小。它的原理类似 Java Proguard，但是只针对资源。他会将原本冗长的资源路径变短，例如将 res/drawable/wechat 变为 r/d/a，同时支持压缩资源文件。</p>
+<p>AndResGuard 不涉及编译过程，只需输入一个apk(无论签名与否，debug版，release版均可，在处理过程中会直接将原签名删除)，可得到一个实现资源混淆后的apk(若在配置文件中输入签名信息，可自动重签名并对齐，得到可直接发布的apk)以及对应资源ID的mapping文件。</p>
+<p>用法如下:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div></pre></td><td class="code"><pre><div class="line">apply plugin: &apos;AndResGuard&apos;</div><div class="line"></div><div class="line">buildscript &#123;</div><div class="line">    repositories &#123;</div><div class="line">        jcenter()</div><div class="line">        google()</div><div class="line">    &#125;</div><div class="line">    dependencies &#123;</div><div class="line">        classpath &apos;com.tencent.mm:AndResGuard-gradle-plugin:1.2.20&apos;</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"></div><div class="line">andResGuard &#123;</div><div class="line">    // mappingFile = file(&quot;./resource_mapping.txt&quot;)</div><div class="line">    mappingFile = null</div><div class="line">    use7zip = true</div><div class="line">    useSign = true</div><div class="line">    // 打开这个开关，会keep住所有资源的原始路径，只混淆资源的名字</div><div class="line">    keepRoot = false</div><div class="line">    // 设置这个值，会把arsc name列混淆成相同的名字，减少string常量池的大小</div><div class="line">    fixedResName = &quot;arg&quot;</div><div class="line">    // 打开这个开关会合并所有哈希值相同的资源，但请不要过度依赖这个功能去除去冗余资源</div><div class="line">    mergeDuplicatedRes = true</div><div class="line">    whiteList = [</div><div class="line">        // for your icon</div><div class="line">        &quot;R.drawable.icon&quot;,</div><div class="line">        // for fabric</div><div class="line">        &quot;R.string.com.crashlytics.*&quot;,</div><div class="line">        // for google-services</div><div class="line">        &quot;R.string.google_app_id&quot;,</div><div class="line">        &quot;R.string.gcm_defaultSenderId&quot;,</div><div class="line">        &quot;R.string.default_web_client_id&quot;,</div><div class="line">        &quot;R.string.ga_trackingId&quot;,</div><div class="line">        &quot;R.string.firebase_database_url&quot;,</div><div class="line">        &quot;R.string.google_api_key&quot;,</div><div class="line">        &quot;R.string.google_crash_reporting_api_key&quot;</div><div class="line">    ]</div><div class="line">    compressFilePattern = [</div><div class="line">        &quot;*.png&quot;,</div><div class="line">        &quot;*.jpg&quot;,</div><div class="line">        &quot;*.jpeg&quot;,</div><div class="line">        &quot;*.gif&quot;,</div><div class="line">    ]</div><div class="line">    sevenzip &#123;</div><div class="line">         artifact = &apos;com.tencent.mm:SevenZip:1.2.20&apos;</div><div class="line">         //path = &quot;/usr/local/bin/7za&quot;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    /**</div><div class="line">    * 可选： 如果不设置则会默认覆盖assemble输出的apk</div><div class="line">    **/</div><div class="line">    // finalApkBackupPath = &quot;$&#123;project.rootDir&#125;/final.apk&quot;</div><div class="line"></div><div class="line">    /**</div><div class="line">    * 可选: 指定v1签名时生成jar文件的摘要算法</div><div class="line">    * 默认值为“SHA-1”</div><div class="line">    **/</div><div class="line">    // digestalg = &quot;SHA-256&quot;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="源码分析"><a href="#源码分析" class="headerlink" title="源码分析"></a>源码分析</h3><h4 id="主流程分析"><a href="#主流程分析" class="headerlink" title="主流程分析"></a>主流程分析</h4><p>下面开始分析 AndResGuard 的源码。克隆整个工程的源码，看根目录下的 AndResGuard 模块:</p>
+<p>AndResGuard 是作为一个 gradle 插件提供给大家使用的。作为一个 gradle 插件,它的入口在 META-INF/gradle-plugins/AndResGuard.properties 里的 com.tencent.gradle.AndResGuardPlugin 类里。</p>
+<p>AndResGuardPlugin 是使用 groovy 语言编写的。首先会执行 AndResGuardPlugin 的 apply 方法,此方法调用的 createTask 方法有两行代码:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">def task = project.task(taskName, type: AndResGuardTask)</div><div class="line">if (variantName != USE_APK_TASK_NAME) &#123;</div><div class="line">  task.dependsOn &quot;assemble$&#123;variantName&#125;&quot;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>可知 android 打包任务完成后会执行 AndResGuardTask 任务。</p>
+<p>AndResGuardTask 的 run 方法 -&gt; Main.gradleRun(inputParam) -&gt; resourceProguard() ,resourceProguard 方法如下:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">File apkFile = new File(apkFilePath);</div><div class="line">mRawApkSize = FileOperation.getFileSizes(apkFile);</div><div class="line">try &#123;</div><div class="line">  ApkDecoder decoder = new ApkDecoder(config, apkFile);</div><div class="line">  /* 默认使用V1签名 */</div><div class="line">  //对资源索引文件resources.arsc进行解码</div><div class="line">  decodeResource(outputDir, decoder, apkFile);</div><div class="line">  buildApk(decoder, apkFile, outputFile, signatureType, minSDKVersoin);</div><div class="line">&#125; catch (Exception e) &#123;</div><div class="line">...</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p> decodeResource 方法，它调用了 ApkDecoder 的 decode() 方法:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">public void decode() throws AndrolibException, IOException, DirectoryException &#123;</div><div class="line">  if (hasResources()) &#123;</div><div class="line">    ensureFilePath();</div><div class="line">    // read the resources.arsc checking for STORED vs DEFLATE compression</div><div class="line">    // this will determine whether we compress on rebuild or not.</div><div class="line">    System.out.printf(&quot;decoding resources.arsc\n&quot;);</div><div class="line">    </div><div class="line">    // 总共进行两次解析。第一次解析 resources.arsc 的时候把混淆前的资源名称保存到集合 mExistTypeNames 中，避免混淆后的名称与混淆前的名称出现相同的情况。第二次解析的时候才真正混淆。</div><div class="line">    RawARSCDecoder.decode(apkFile.getDirectory().getFileInput(&quot;resources.arsc&quot;));</div><div class="line">    ResPackage[] pkgs = ARSCDecoder.decode(apkFile.getDirectory().getFileInput(&quot;resources.arsc&quot;), this);</div><div class="line"></div><div class="line">    // 把没有记录在resources.arsc的资源文件也拷进dest目录</div><div class="line">    copyOtherResFiles();</div><div class="line"></div><div class="line">		// 重新生成 resources.arsc 文件</div><div class="line">    ARSCDecoder.write(apkFile.getDirectory().getFileInput(&quot;resources.arsc&quot;), this, pkgs);</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<h4 id="解析-resources-arsc"><a href="#解析-resources-arsc" class="headerlink" title="解析 resources.arsc"></a>解析 resources.arsc</h4><p>resources.arsc 文件结构图如下：</p>
+<p><img src="https://user-gold-cdn.xitu.io/2018/5/2/1631cf9f45c98d2f?imageslim" alt="结构图"></p>
+<p>源码中总共进行了两次解析。</p>
+<h5 id="第一次解析"><a href="#第一次解析" class="headerlink" title="第一次解析"></a>第一次解析</h5><p>RawARSCDecoder.decode(apkFile.getDirectory().getFileInput(“resources.arsc”)) </p>
+<p>调用链如下: RawARSCDecoder#readTable() -&gt; RawARSCDecoder#readTablePackage() -&gt; RawARSCDecoder#readLibraryType() -&gt; RawARSCDecoder#readTableTypeSpec() -&gt; RawARSCDecoder#readConfig() -&gt;RawARSCDecoder#readEntry() -&gt; RawARSCDecoder#putTypeSpecNameStrings .</p>
+<p>putTypeSpecNameStrings 方法会把 各种资源对应的原始资源名称保存到集合 mExistTypeNames 中。mExistTypeNames 的 key 为 资源类型，value 为该类型对应的资源名称列表。设置该集合的目的是避免混淆后的名称与混淆前的名称出现相同的情况。</p>
+<h5 id="第二次解析"><a href="#第二次解析" class="headerlink" title="第二次解析"></a>第二次解析</h5><p>ResPackage[] pkgs = ARSCDecoder.decode(apkFile.getDirectory().getFileInput(“resources.arsc”), this)</p>
+<p>在 decoder.readTable() 方法里看一下解析过程:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">private ResPackage[] readTable() throws IOException, AndrolibException &#123;</div><div class="line">  nextChunkCheckType(Header.TYPE_TABLE);</div><div class="line">  int packageCount = mIn.readInt();</div><div class="line">  </div><div class="line">  //读取 resources.arsc 的全局字符串池,保存到 mTableStrings</div><div class="line">  mTableStrings = StringBlock.read(mIn);</div><div class="line">  </div><div class="line">  ResPackage[] packages = new ResPackage[packageCount];</div><div class="line">  nextChunk();</div><div class="line">  for (int i = 0; i &lt; packageCount; i++) &#123;</div><div class="line">  	// 	读取 resources.arsc 每个 packages 信息</div><div class="line">    packages[i] = readPackage();</div><div class="line">  &#125;</div><div class="line">  ...</div><div class="line">  return packages;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p> readPackage() -&gt; readTableTypeSpec() -&gt; readConfig() -&gt; readEntry() </p>
+<p>解析具体的资源项 readEntry 中调用了 readValue() 方法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div></pre></td><td class="code"><pre><div class="line">private void readValue(boolean flags, int specNamesId) throws IOException, AndrolibException &#123;</div><div class="line">	...</div><div class="line">  //这里面有几个限制(比如只针对string类型)，一对于string ,id, array我们是知道肯定不用改的，第二看要那个type是否对应有文件路径</div><div class="line">  if (mPkg.isCanResguard()</div><div class="line">     &amp;&amp; flags</div><div class="line">     &amp;&amp; type == TypedValue.TYPE_STRING</div><div class="line">     &amp;&amp; mShouldResguardForType</div><div class="line">     &amp;&amp; mShouldResguardTypeSet.contains(mType.getName())) &#123;</div><div class="line">    if (mTableStringsResguard.get(data) == null) &#123;</div><div class="line">      String raw = mTableStrings.get(data).toString();</div><div class="line">      if (StringUtil.isBlank(raw) || raw.equalsIgnoreCase(&quot;null&quot;)) return;</div><div class="line"></div><div class="line">      String proguard = mPkg.getSpecRepplace(mResId);</div><div class="line"></div><div class="line">      String newFilePath = raw.substring(0, secondSlash);</div><div class="line"></div><div class="line">      //同理这里不能用File.separator，因为resources.arsc里面就是用这个</div><div class="line">      String result = newFilePath + &quot;/&quot; + proguard;</div><div class="line">      int firstDot = raw.indexOf(&quot;.&quot;);</div><div class="line">      if (firstDot != -1) &#123;</div><div class="line">        result += raw.substring(firstDot);</div><div class="line">      &#125;</div><div class="line">      String compatibaleraw = new String(raw);</div><div class="line">      String compatibaleresult = new String(result);</div><div class="line"></div><div class="line">      //为了适配window要做一次转换</div><div class="line">      if (!File.separator.contains(&quot;/&quot;)) &#123;</div><div class="line">        compatibaleresult = compatibaleresult.replace(&quot;/&quot;, File.separator);</div><div class="line">        compatibaleraw = compatibaleraw.replace(&quot;/&quot;, File.separator);</div><div class="line">      &#125;</div><div class="line"></div><div class="line">			// 原始的资源文件</div><div class="line">      File resRawFile = new File(mApkDecoder.getOutTempDir().getAbsolutePath() + File.separator + compatibaleraw);</div><div class="line">      // 混淆名称后的文件</div><div class="line">      File resDestFile = new File(mApkDecoder.getOutDir().getAbsolutePath() + File.separator + compatibaleresult);</div><div class="line"></div><div class="line">			//合并重复的资源</div><div class="line">      MergeDuplicatedResInfo filterInfo = null;</div><div class="line">      boolean mergeDuplicatedRes = mApkDecoder.getConfig().mMergeDuplicatedRes;</div><div class="line">      if (mergeDuplicatedRes) &#123;</div><div class="line">        filterInfo = mergeDuplicated(resRawFile, resDestFile, compatibaleraw, result);</div><div class="line">        if (filterInfo != null) &#123;</div><div class="line">          resDestFile = new File(filterInfo.filePath);</div><div class="line">          result = filterInfo.fileName;</div><div class="line">        &#125;</div><div class="line">      &#125;</div><div class="line"></div><div class="line">      if (!resRawFile.exists()) &#123;</div><div class="line">      &#125; else &#123;</div><div class="line">        if (filterInfo == null) &#123;</div><div class="line">        	//将混淆前的文件复制给混淆路径后的文件。例如将 res/layout/main.xml 复制给 r/l/a.xml文件</div><div class="line">          FileOperation.copyFileUsingStream(resRawFile, resDestFile);</div><div class="line">        &#125;</div><div class="line">        //already copied</div><div class="line">        mApkDecoder.removeCopiedResFile(resRawFile.toPath());</div><div class="line">        // data 是entry的实际数据索引 result 是混淆后的全路径</div><div class="line">        mTableStringsResguard.put(data, result);</div><div class="line">      &#125;</div><div class="line">    &#125;</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h4 id="重新生成-resources-arsc"><a href="#重新生成-resources-arsc" class="headerlink" title="重新生成 resources.arsc"></a>重新生成 resources.arsc</h4><p>解析完成之后会重新生成 resources.arsc 文件，看一下 writeTable 方法:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line">private void writeTable() throws IOException, AndrolibException &#123;</div><div class="line">  System.out.printf(&quot;writing new resources.arsc \n&quot;);</div><div class="line">  mTableLenghtChange = 0;</div><div class="line">  writeNextChunkCheck(Header.TYPE_TABLE, 0);</div><div class="line">  int packageCount = mIn.readInt();</div><div class="line">  mOut.writeInt(packageCount);</div><div class="line"></div><div class="line">	// 重写全局字符串池，计算混淆后全局字符串池长度与混淆前的差值.后面 reWriteTable() 方法会用到 mTableLenghtChange</div><div class="line">  mTableLenghtChange += StringBlock.writeTableNameStringBlock(mIn, mOut, mTableStringsResguard);</div><div class="line">  writeNextChunk(0);</div><div class="line">  if (packageCount != mPkgs.length) &#123;</div><div class="line">    throw new AndrolibException(String.format(&quot;writeTable package count is different before %d, now %d&quot;,</div><div class="line">       mPkgs.length,</div><div class="line">       packageCount</div><div class="line">    ));</div><div class="line">  &#125;</div><div class="line">  for (int i = 0; i &lt; packageCount; i++) &#123;</div><div class="line">    mCurPackageID = i;</div><div class="line">    //重写package</div><div class="line">    writePackage();</div><div class="line">  &#125;</div><div class="line">  // 最后需要把整个的size重写回去</div><div class="line">  reWriteTable();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>writePackage() -&gt; </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div></pre></td><td class="code"><pre><div class="line">private void writePackage() throws IOException, AndrolibException &#123;</div><div class="line">  checkChunkType(Header.TYPE_PACKAGE);</div><div class="line">  int id = (byte) mIn.readInt();</div><div class="line">  mOut.writeInt(id);</div><div class="line">  mResId = id &lt;&lt; 24;</div><div class="line">  //char_16的，一共256byte</div><div class="line">  mOut.writeBytes(mIn, 256);</div><div class="line">  /* typeNameStrings */</div><div class="line">  mOut.writeInt(mIn.readInt());</div><div class="line">  /* typeNameCount */</div><div class="line">  mOut.writeInt(mIn.readInt());</div><div class="line">  /* specNameStrings */</div><div class="line">  mOut.writeInt(mIn.readInt());</div><div class="line">  /* specNameCount */</div><div class="line">  mOut.writeInt(mIn.readInt());</div><div class="line">  StringBlock.writeAll(mIn, mOut);</div><div class="line"></div><div class="line">  if (mPkgs[mCurPackageID].isCanResguard()) &#123;</div><div class="line">  	// 重写资源名称</div><div class="line">    int specSizeChange = StringBlock.writeSpecNameStringBlock(mIn,</div><div class="line">       mOut,</div><div class="line">       mPkgs[mCurPackageID].getSpecNamesBlock(),</div><div class="line">       mCurSpecNameToPos</div><div class="line">    );</div><div class="line">    mPkgsLenghtChange[mCurPackageID] += specSizeChange;</div><div class="line">    mTableLenghtChange += specSizeChange;</div><div class="line">  &#125; else &#123;</div><div class="line">    StringBlock.writeAll(mIn, mOut);</div><div class="line">  &#125;</div><div class="line">  writeNextChunk(0);</div><div class="line">  while (mHeader.type == Header.TYPE_LIBRARY) &#123;</div><div class="line">    writeLibraryType();</div><div class="line">  &#125;</div><div class="line">  while (mHeader.type == Header.TYPE_SPEC_TYPE) &#123;</div><div class="line">    writeTableTypeSpec();</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>对于 writeSpecNameStringBlock 方法，该方法的第 3 个参数 Map<string, set<string="">&gt; specNames ,specNames 的 key 代表资源项名称字符串（取值有 3 种情况，混淆前的名称、混淆后的名称、固定字符串 fixedResName = “arg”）。该方法行数较长，看一下关键代码:</string,></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div></pre></td><td class="code"><pre><div class="line">for (Iterator&lt;String&gt; it = specNames.keySet().iterator(); it.hasNext(); ) &#123;</div><div class="line">  stringOffsets[i] = offset;</div><div class="line">  String name = it.next();</div><div class="line">  for (String specName : specNames.get(name)) &#123;</div><div class="line">    // N res entry item point to one string constant</div><div class="line">    // 多个 entry 的名称指向同一个常量字符串</div><div class="line">    curSpecNameToPos.put(specName, i);</div><div class="line">  &#125;</div><div class="line">  if (isUTF8) &#123;</div><div class="line">    stringBytes[offset++] = (byte) name.length();</div><div class="line">    stringBytes[offset++] = (byte) name.length();</div><div class="line">    totalSize += 2;</div><div class="line">    byte[] tempByte = name.getBytes(Charset.forName(&quot;UTF-8&quot;));</div><div class="line">    if (name.length() != tempByte.length) &#123;</div><div class="line">      throw new AndrolibException(String.format(</div><div class="line">          &quot;writeSpecNameStringBlock %s UTF-8 length is different name %d, tempByte %d\n&quot;,</div><div class="line">          name,</div><div class="line">          name.length(),</div><div class="line">          tempByte.length</div><div class="line">      ));</div><div class="line">    &#125;</div><div class="line">    // 重写资源项名称字符串池</div><div class="line">    System.arraycopy(tempByte, 0, stringBytes, offset, tempByte.length);</div><div class="line">    offset += name.length();</div><div class="line">    stringBytes[offset++] = NULL;</div><div class="line">    totalSize += name.length() + 1;</div><div class="line">  &#125; else &#123;</div><div class="line">   //省略...</div><div class="line">  &#125;</div><div class="line">  i++;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h4 id="重新签名打包"><a href="#重新签名打包" class="headerlink" title="重新签名打包"></a>重新签名打包</h4><p>该部分工作在 buildApk(decoder, apkFile, outputFile, signatureType, minSDKVersoin) 方法里完成。重新打包完成后，需要重新签名，以 <a href="https://developer.android.com/about/versions/nougat/android-7.0#apk_signature_v2" target="_blank" rel="external">APK 签名方案 v2</a> 签名为例:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line">public void buildApkWithV2sign(HashMap&lt;String, Integer&gt; compressData, int minSDKVersion) throws Exception &#123;</div><div class="line">  insureFileNameV2();</div><div class="line">  // 重新打包(未签名的安装包)</div><div class="line">  generalUnsignApk(compressData);</div><div class="line">  //如果配置文件里配置了 7z 压缩，则根据配置对资源进行压缩</div><div class="line">  if (use7zApk(compressData, mUnSignedApk, m7ZipApk)) &#123;</div><div class="line">  	// 下文使用了 apksigner 工具完成签名。如果使用的是 apksigner，只能在为 APK 文件签名之前执行 zipalign</div><div class="line">    alignApk(m7ZipApk, mAlignedApk);</div><div class="line">  &#125; else &#123;</div><div class="line">    alignApk(mUnSignedApk, mAlignedApk);</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  /*</div><div class="line">   * Caution: If you sign your app using APK Signature Scheme v2 and make further changes to the app,</div><div class="line">   * the app&apos;s signature is invalidated.</div><div class="line">   * For this reason, use tools such as zipalign before signing your app using APK Signature Scheme v2, not after.</div><div class="line">   **/</div><div class="line">   // 使用了 apksigner 工具完成签名</div><div class="line">  signApkV2(mAlignedApk, mSignedApk, minSDKVersion);</div><div class="line">  //输出结果，如果不设置则会默认覆盖assemble输出的apk</div><div class="line">  copyFinalApkV2();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2021/01/04/CallServerInterceptor分析/" rel="prev" title="OKHttp拦截器CallServerInterceptor分析">
+                OKHttp拦截器CallServerInterceptor分析 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="https://raw.githubusercontent.com/2227056071/imges/master/phone.jpg"
+               alt="DaQiang" />
+          <p class="site-author-name" itemprop="name">DaQiang</p>
+           
+              <p class="site-description motion-element" itemprop="description">享受生命的精彩</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">21</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">4</span>
+                <span class="site-state-item-name">标签</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#AndResGuard-源码解析"><span class="nav-number">1.</span> <span class="nav-text">AndResGuard 源码解析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#AndResGuard-简介"><span class="nav-number">1.1.</span> <span class="nav-text">AndResGuard 简介</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#源码分析"><span class="nav-number">1.2.</span> <span class="nav-text">源码分析</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#主流程分析"><span class="nav-number">1.2.1.</span> <span class="nav-text">主流程分析</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#解析-resources-arsc"><span class="nav-number">1.2.2.</span> <span class="nav-text">解析 resources.arsc</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#第一次解析"><span class="nav-number">1.2.2.1.</span> <span class="nav-text">第一次解析</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#第二次解析"><span class="nav-number">1.2.2.2.</span> <span class="nav-text">第二次解析</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#重新生成-resources-arsc"><span class="nav-number">1.2.3.</span> <span class="nav-text">重新生成 resources.arsc</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#重新签名打包"><span class="nav-number">1.2.4.</span> <span class="nav-text">重新签名打包</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">DaQiang</span>
+</div>
+
+
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.0"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.0"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://huqiang.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'http://yoursite.com/2021/01/28/AndResGuard 源码解析/';
+          this.page.identifier = '2021/01/28/AndResGuard 源码解析/';
+          this.page.title = '';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://huqiang.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+  <script>AV.initialize("v18ufCuSLu5m1cLvghggolhj-gzGzoHsz", "iMokNFUCXO4BnEN3lV8c2xV7");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>
