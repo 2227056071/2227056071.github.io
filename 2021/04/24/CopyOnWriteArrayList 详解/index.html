@@ -1,0 +1,851 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Java 源码解析," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.0" />
+
+
+
+
+
+
+<meta name="description" content="CopyOnWriteArrayList 详解介绍 CopyOnWriteArrayList 之前，先看一下 ArrayList 的使用: 1234567891011public static void main(String... args) &amp;#123;    List&amp;lt;String&amp;gt; list = new ArrayList&amp;lt;&amp;gt;();    list.add(&amp;quo">
+<meta name="keywords" content="Java 源码解析">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CopyOnWriteArrayList 详解">
+<meta property="og:url" content="http://yoursite.com/2021/04/24/CopyOnWriteArrayList 详解/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="CopyOnWriteArrayList 详解介绍 CopyOnWriteArrayList 之前，先看一下 ArrayList 的使用: 1234567891011public static void main(String... args) &amp;#123;    List&amp;lt;String&amp;gt; list = new ArrayList&amp;lt;&amp;gt;();    list.add(&amp;quo">
+<meta property="og:updated_time" content="2021-04-26T15:10:19.696Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="CopyOnWriteArrayList 详解">
+<meta name="twitter:description" content="CopyOnWriteArrayList 详解介绍 CopyOnWriteArrayList 之前，先看一下 ArrayList 的使用: 1234567891011public static void main(String... args) &amp;#123;    List&amp;lt;String&amp;gt; list = new ArrayList&amp;lt;&amp;gt;();    list.add(&amp;quo">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"right","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2021/04/24/CopyOnWriteArrayList 详解/"/>
+
+
+
+
+
+  <title> CopyOnWriteArrayList 详解 | Hexo </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-right page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/04/24/CopyOnWriteArrayList 详解/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="DaQiang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://raw.githubusercontent.com/2227056071/imges/master/phone.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                CopyOnWriteArrayList 详解
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-04-24T00:00:00+08:00">
+                2021-04-24
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2021/04/24/CopyOnWriteArrayList 详解/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2021/04/24/CopyOnWriteArrayList 详解/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/2021/04/24/CopyOnWriteArrayList 详解/" class="leancloud_visitors" data-flag-title="CopyOnWriteArrayList 详解">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数 </span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="CopyOnWriteArrayList-详解"><a href="#CopyOnWriteArrayList-详解" class="headerlink" title="CopyOnWriteArrayList 详解"></a>CopyOnWriteArrayList 详解</h2><p>介绍 CopyOnWriteArrayList 之前，先看一下 ArrayList 的使用:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">public static void main(String... args) &#123;</div><div class="line">    List&lt;String&gt; list = new ArrayList&lt;&gt;();</div><div class="line">    list.add(&quot;1&quot;);</div><div class="line">    list.add(&quot;2&quot;);</div><div class="line">    list.add(&quot;3&quot;);</div><div class="line">    for (String s:list)&#123;</div><div class="line">        if (&quot;3&quot;.equals(s))&#123;</div><div class="line">            list.remove(s);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>执行上面的代码后 jvm 会抛出 ConcurrentModificationException 的异常:</p>
+<p>Exception in thread “main” java.util.ConcurrentModificationException<br>    at java.util.ArrayList$Itr.checkForComodification(ArrayList.java:909)<br>    at java.util.ArrayList$Itr.next(ArrayList.java:859)<br>    at com.example.lib.MyClass.main(MyClass.java:13)</p>
+<p>根据报错的堆栈信息可知，异常是在 ArrayList 内部类 Itr 的 checkForComodification 方法抛出的。</p>
+<p>反编译 java 代码后，字节码代码如下:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">public static void main(String... args) &#123;</div><div class="line">    List&lt;String&gt; list = new ArrayList();// 9</div><div class="line">    list.add(&quot;1&quot;);// 10</div><div class="line">    list.add(&quot;2&quot;);// 11</div><div class="line">    list.add(&quot;3&quot;);// 12</div><div class="line">    Iterator var2 = list.iterator();// 13</div><div class="line"></div><div class="line">    while(var2.hasNext()) &#123;</div><div class="line">        String s = (String)var2.next();</div><div class="line">        if (&quot;3&quot;.equals(s)) &#123;// 14</div><div class="line">            list.remove(s);// 15</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">&#125;// 18</div></pre></td></tr></table></figure>
+<p>由字节码可知，foreach 语法糖实际上是利用了迭代器来完成遍历。</p>
+<p>先调用 iterator 方法得到迭代器对象</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">public Iterator&lt;E&gt; iterator() &#123;</div><div class="line">    return new Itr();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>该方法返回的是 ArrayList 的内部类 Itr 对象。Itr 类代码如下:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div></pre></td><td class="code"><pre><div class="line">private class Itr implements Iterator&lt;E&gt; &#123;</div><div class="line">    int cursor;       // index of next element to return</div><div class="line">    int lastRet = -1; // index of last element returned; -1 if no such</div><div class="line">    int expectedModCount = modCount;</div><div class="line"></div><div class="line">    Itr() &#123;&#125;</div><div class="line"></div><div class="line">    public boolean hasNext() &#123;</div><div class="line">        return cursor != size;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @SuppressWarnings(&quot;unchecked&quot;)</div><div class="line">    public E next() &#123;</div><div class="line">        checkForComodification();</div><div class="line">        int i = cursor;</div><div class="line">        if (i &gt;= size)</div><div class="line">            throw new NoSuchElementException();</div><div class="line">        Object[] elementData = ArrayList.this.elementData;</div><div class="line">        if (i &gt;= elementData.length)</div><div class="line">            throw new ConcurrentModificationException();</div><div class="line">        cursor = i + 1;</div><div class="line">        return (E) elementData[lastRet = i];</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    public void remove() &#123;</div><div class="line">        if (lastRet &lt; 0)</div><div class="line">            throw new IllegalStateException();</div><div class="line">        checkForComodification();</div><div class="line"></div><div class="line">        try &#123;</div><div class="line">            ArrayList.this.remove(lastRet);</div><div class="line">            cursor = lastRet;</div><div class="line">            lastRet = -1;</div><div class="line">            expectedModCount = modCount;</div><div class="line">        &#125; catch (IndexOutOfBoundsException ex) &#123;</div><div class="line">            throw new ConcurrentModificationException();</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    final void checkForComodification() &#123;</div><div class="line">        if (modCount != expectedModCount)</div><div class="line">            throw new ConcurrentModificationException();</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>next() 方法会先调用 checkForComodification 方法判断 modCount 与 expectedModCount 是否相等，如果不等的话就抛出异常。</p>
+<p>对于 expectedModCount ，当创建 Itr 对象的时候会默认赋值为 modCount。当新增或者删除元素的时候会执行 modCount++ ，所以ArrayList 遍历的时候是不允许新增或者删除元素的，那就无法支持多线程的读写操作了。</p>
+<p>java 的并发包 java.util.concurrent 里提供的 CopyOnWriteArrayList 是线程安全的，支持多线程并发读写操作。下面以 JDK1.8 源码分析一下实现原理:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">public boolean add(E e) &#123;</div><div class="line">    final ReentrantLock lock = this.lock;</div><div class="line">    lock.lock();</div><div class="line">    try &#123;</div><div class="line">        Object[] elements = getArray();</div><div class="line">        int len = elements.length;</div><div class="line">        Object[] newElements = Arrays.copyOf(elements, len + 1);</div><div class="line">        newElements[len] = e;</div><div class="line">        setArray(newElements);</div><div class="line">        return true;</div><div class="line">    &#125; finally &#123;</div><div class="line">        lock.unlock();</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line">public E remove(int index) &#123;</div><div class="line">    final ReentrantLock lock = this.lock;</div><div class="line">    lock.lock();</div><div class="line">    try &#123;</div><div class="line">        Object[] elements = getArray();</div><div class="line">        int len = elements.length;</div><div class="line">        E oldValue = get(elements, index);</div><div class="line">        int numMoved = len - index - 1;</div><div class="line">        if (numMoved == 0)</div><div class="line">            setArray(Arrays.copyOf(elements, len - 1));</div><div class="line">        else &#123;</div><div class="line">            Object[] newElements = new Object[len - 1];</div><div class="line">            System.arraycopy(elements, 0, newElements, 0, index);</div><div class="line">            System.arraycopy(elements, index + 1, newElements, index,</div><div class="line">                             numMoved);</div><div class="line">            setArray(newElements);</div><div class="line">        &#125;</div><div class="line">        return oldValue;</div><div class="line">    &#125; finally &#123;</div><div class="line">        lock.unlock();</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">public E get(int index) &#123;</div><div class="line">    return get(getArray(), index);</div><div class="line">&#125;</div><div class="line">private E get(Object[] a, int index) &#123;</div><div class="line">        return (E) a[index];</div><div class="line">&#125;</div><div class="line">final Object[] getArray() &#123;</div><div class="line">        return array;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>由源码可知，CopyOnWriteArrayList 在新增或者删除元素，先获取可重入锁 ReentrantLock，拷贝原来的数组，在新的数组上面新增或者删除元素。CopyOnWriteArrayList 在读取元素的时候，直接在老数组上读取。CopyOnWriteArrayList 的读写操作是在不同的数组上面操作的，保证了多线程操作的安全性。</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Java-源码解析/" rel="tag"># Java 源码解析</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2021/04/25/RecyclerView 缓存解析/" rel="next" title="RecyclerView 缓存机制">
+                <i class="fa fa-chevron-left"></i> RecyclerView 缓存机制
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2021/04/24/LinkedBlockingQueue源码解析/" rel="prev" title="LinkedBlockingQueue 详解">
+                LinkedBlockingQueue 详解 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="https://raw.githubusercontent.com/2227056071/imges/master/phone.jpg"
+               alt="DaQiang" />
+          <p class="site-author-name" itemprop="name">DaQiang</p>
+           
+              <p class="site-description motion-element" itemprop="description">享受生命的精彩</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">28</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">7</span>
+                <span class="site-state-item-name">标签</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#CopyOnWriteArrayList-详解"><span class="nav-number">1.</span> <span class="nav-text">CopyOnWriteArrayList 详解</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">DaQiang</span>
+</div>
+
+
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.0"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.0"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://huqiang.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'http://yoursite.com/2021/04/24/CopyOnWriteArrayList 详解/';
+          this.page.identifier = '2021/04/24/CopyOnWriteArrayList 详解/';
+          this.page.title = 'CopyOnWriteArrayList 详解';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://huqiang.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+  <script>AV.initialize("v18ufCuSLu5m1cLvghggolhj-gzGzoHsz", "iMokNFUCXO4BnEN3lV8c2xV7");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

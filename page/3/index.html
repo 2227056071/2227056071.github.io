@@ -250,6 +250,907 @@
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/06/13/MVC、MVP、MVVM/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="DaQiang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://raw.githubusercontent.com/2227056071/imges/master/phone.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+                <a class="post-title-link" href="/2018/06/13/MVC、MVP、MVVM/" itemprop="url">
+                  MVC、MVP、MVVM
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-06-13T22:17:13+08:00">
+                2018-06-13
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/06/13/MVC、MVP、MVVM/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2018/06/13/MVC、MVP、MVVM/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/2018/06/13/MVC、MVP、MVVM/" class="leancloud_visitors" data-flag-title="MVC、MVP、MVVM">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数 </span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>MVC :<br>Model View Controller<br>Model 负责数据交互 android 中的 View 和 Controller 都是指 Activity,Activity 负责了<br>ui 显示和 业务逻辑代码。</p>
+<p>MVC 缺点：当业务规模比较大时，Controller 代码比较臃肿。一个  Activity 代码成千上万行的时候<br>非常不便于阅读、维护。<br>适用场景：规模比较小的项目</p>
+<p>MVP :<br>Model View Presenter<br>Model 负责数据交互 android 中的 View 指 Activity,Activity 负责了<br>ui 显示，Presenter 是指跟 android api 无关的业务逻辑代码。<br>Presenter 在中间，通过 View 接口和 View 进行交互</p>
+<p>MVP 优点：View 层只负责 ui 显示，减少了耦合度。<br>MVP 缺点：View 和 Presenter 互相引用并互相回调，代码不美观。当 View 发生变化时，Presenter<br>可能做相应的变化（改变更新 ui 的方法，改变回调的方法等），view 和 Presenter 之间还是存<br>在一定的耦合度，导致代码更改量比较大。</p>
+<p>MVVM:<br>View ViewModel Model<br>ViewModel 不再持有 View 的引用，通过绑定关系自动更新 ui ，ui的变化也自动反馈到<br>ViewModel</p>
+<p>MVVM 优点：<br>低耦合度<br>MVVM模式中，数据是独立于UI的，ViewModel只负责处理和提供数据，UI想怎么处理数据都由UI自己决定，ViewModel 不涉及任何和UI相关的事也不持有UI控件的引用，即使控件改变（TextView<br>换成 EditText）ViewModel 几乎不需要更改任何代码，专注自己的数据处理就可以了。</p>
+
+          
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/06/03/TCP与UDP相关/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="DaQiang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://raw.githubusercontent.com/2227056071/imges/master/phone.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+                <a class="post-title-link" href="/2018/06/03/TCP与UDP相关/" itemprop="url">
+                  TCP与UDP相关
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-06-03T21:41:12+08:00">
+                2018-06-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/06/03/TCP与UDP相关/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2018/06/03/TCP与UDP相关/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/2018/06/03/TCP与UDP相关/" class="leancloud_visitors" data-flag-title="TCP与UDP相关">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数 </span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>TCP 协议和 UDP 协议都属于传输层的协议。传输层是网络分层的概念。按照TCP/IP五层模型的协<br>议，可分为以下 5 层：应用层、传输层、网络层、数据链路层、物理层。从一台主机的应用程序<br> A 发送数据到另一台的主机上的应用程序 B 需要经历各层协议。每层协议完成不同的功能：<br> 物理层简单的理解是跟物理设备打交道的。它规定了网络连接时所需接插件的规格尺寸、引脚数量<br> 和排列情况；<br> 数据链路层的作用包括：物理地址寻址、数据的成帧、流量控制、数据的检错、重发等。<br> 网络层的作用是找到目标主机的地址。<br> 传输层的作用是把数据发送到目标主机的目标应用程序。<br> 应用层的作用是为操作系统或网络应用程序提供访问网络服务的接口。</p>
+<p> <strong>UDP 和 TCP 区别：</strong></p>
+<ol>
+<li>TCP协议可靠；UDP协议不可靠</li>
+<li>TCP协议是面向连接；UDP协议采用无连接</li>
+<li>TCP协议负载较高，采用虚电路；UDP采用无连接</li>
+<li>TCP协议的发送方要确认接收方是否收到数据段（3次握手协议）</li>
+<li><p>TCP协议采用窗口技术和流控制<br>UDP 和 TCP 需要根据实际需要来判断需要哪种协议，并不一定 TCP 就是好的。UDP协议的优点是比较简单，缺点是可靠性较差，一旦数据包发出，无法知道对方是否收到。一旦数据包发出，无法知道对方是否收到，对于音频、在线游戏、视频 ，UDP是最好的选择。TCP协议能够确保数据不会遗失。它的缺点是过程复杂、实现困难、消耗较多的资源。</p>
+<p><strong>TCP 建立连接需要三次握手（每次握手实际是发送报文）：</strong><br>第一次握手：建立连接时，客户端发送syn包（syn=j）到服务器，并进入SYN_SENT状态，等待服务器确认；SYN：同步序列编号（Synchronize Sequence Numbers）。<br>第二次握手：服务器收到syn包，必须确认客户的SYN（ack=j+1），同时自己也发送一个SYN包（syn=k），即SYN+ACK包，此时服务器进入SYN_RECV状态；<br>第三次握手：客户端收到服务器的SYN+ACK包，向服务器发送确认包ACK(ack=k+1），此包发送完毕，客户端和服务器进入ESTABLISHED（TCP连接成功）状态，完成三次握手。<br>完成三次握手，客户端与服务器开始传送数据。<br>但是为什么一定要进行三次握手呢，一次不行么？两次不行么？知乎上有人通俗地解释了：</p>
+</li>
+</ol>
+<p>三次握手：“喂，你听得到吗？”<br>“我听得到呀，你听得到我吗？”<br>“我能听到你，今天balabala……”</p>
+<p>两次握手：“喂，你听得到吗？”<br>“我听得到呀”<br>“喂喂，你听得到吗？”<br>“草，我听得到呀！！！！”<br>“你TM能不能听到我讲话啊！！喂！”<br>“……”</p>
+<p>四次握手：<br>“喂，你听得到吗？”<br>“我听得到呀，你听得到我吗？”<br>“我能听到你，你能听到我吗？”<br>“……不想跟傻逼说话”</p>
+<p>以上部分内容参考网络并结合我本人的理解。如有错误，欢迎指正，谢谢</p>
+
+          
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/06/“进程保活/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="DaQiang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://raw.githubusercontent.com/2227056071/imges/master/phone.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+                <a class="post-title-link" href="/2018/05/06/“进程保活/" itemprop="url">
+                  “进程保活
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-06T20:14:07+08:00">
+                2018-05-06
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/05/06/“进程保活/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2018/05/06/“进程保活/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/2018/05/06/“进程保活/" class="leancloud_visitors" data-flag-title="“进程保活">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数 </span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="一、进程回收机制"><a href="#一、进程回收机制" class="headerlink" title="一、进程回收机制"></a>一、进程回收机制</h1><p>当系统内存资源不足时，android 系统会杀掉不重要的进程来回收内存。根据网上的资料，android 系统中进程可分为以下几种：<br>1、前台进程(Foreground process)<br>场景：<br>某个进程持有一个正在与用户交互的Activity并且该Activity正处于resume的状态。<br>某个进程持有一个Service，并且该Service与用户正在交互的Activity绑定。<br>某个进程持有一个Service，并且该Service调用startForeground()方法使之位于前台运行。<br>某个进程持有一个Service，并且该Service正在执行它的某个生命周期回调方法，比如onCreate()、 onStart()或onDestroy()。<br>某个进程持有一个BroadcastReceiver，并且该BroadcastReceiver正在执行其onReceive()方法。<br>用户正在使用的程序，一般系统是不会杀死前台进程的，除非用户强制停止应用或者系统内存不足等极端情况会杀死。</p>
+<p>2、可见进程(Visible process)<br>场景：<br>拥有不在前台、但仍对用户可见的 Activity（已调用 onPause()）。<br>拥有绑定到可见（或前台）Activity 的 Service<br>用户正在使用，看得到，但是摸不着，没有覆盖到整个屏幕,只有屏幕的一部分可见。进程不包含任何前台组件，一般系统也是不会杀死可见进程的，除非要在资源吃紧的情况下，要保持某个或多个前台进程存活</p>
+<p>3、服务进程(Service process)<br>场景<br>某个进程中运行着一个Service且该Service是通过startService()启动的，与用户看见的界面没有直接关联。<br>在内存不足以维持所有前台进程和可见进程同时运行的情况下，服务进程会被杀死</p>
+<p>4、后台进程(Background process)<br>场景：<br>在用户按了”back”或者”home”后,程序本身看不到了,但是其实还在运行的程序，比如Activity调用了onPause方法<br>系统可能随时终止它们，回收内存</p>
+<p>5、空进程(Empty process)<br>场景：<br>某个进程不包含任何活跃的组件时该进程就会被置为空进程，完全没用,杀了它只有好处没坏处,第一个干它!</p>
+<p>假设现在内存不足，空进程都被杀光了，现在要杀后台进程，但是手机中后台进程很多，难道要一次性全部都清理掉？当然不是的，进程是有它的优先级的，这个优先级通过进程的adj值来反映，它是linux内核分配给每个系统进程的一个值，代表进程的优先级，进程回收机制就是根据这个优先级来决定是否进行回收。可以通过cat /proc/进程id/oom_adj可以看到当前进程的adj值</p>
+<h1 id="二、进程保活方案，进程保活的基本原理是提高进程的优先级，即如何降低oom-adj的值："><a href="#二、进程保活方案，进程保活的基本原理是提高进程的优先级，即如何降低oom-adj的值：" class="headerlink" title="二、进程保活方案，进程保活的基本原理是提高进程的优先级，即如何降低oom_adj的值："></a>二、进程保活方案，进程保活的基本原理是提高进程的优先级，即如何降低oom_adj的值：</h1><p>1、开启一个像素的Activity<br>据说这个是手Q的进程保活方案，基本思想，系统一般是不会杀死前台进程的。所以要使得进程常驻，我们只需要在锁屏的时候在本进程开启一个Activity，为了欺骗用户，让这个Activity的大小是1像素，并且透明无切换动画，在开屏幕的时候，把这个Activity关闭掉。这种方案的实现原理就是将进程的优化级提高到了最高等级的前台进程。<br>2、利用 Notification 提升权限<br>2.1 方案设计思想<br>Android 中 Service 的优先级为4，通过 setForeground 接口可以将后台 Service 设置为前台 Service，使进程的优先级由4提升为2，从而使进程的优先级仅仅低于用户当前正在交互的进程，与可见进程优先级一致，使进程被杀死的概率大大降低。</p>
+<p>2.2 方案实现挑战<br>从 Android2.3 开始调用 setForeground 将后台 Service 设置为前台 Service 时，必须在系统的通知栏发送一条通知，也就是前台 Service 与一条可见的通知时绑定在一起的。<br>对于不需要常驻通知栏的应用来说，该方案虽好，但却是用户感知的，无法直接使用。</p>
+<p>2.3 方案挑战应对措施<br>通过实现一个内部 Service，在 LiveService 和其内部 Service 中同时发送具有相同 ID 的 Notification，然后将内部 Service 结束掉。随着内部 Service 的结束，Notification 将会消失，但系统优先级依然保持为2。<br><strong>据说这个微信也用过的进程保活方案，该方案实际利用了Android前台service的漏洞。</strong></p>
+<h1 id="三、进程死后拉活的方案"><a href="#三、进程死后拉活的方案" class="headerlink" title="三、进程死后拉活的方案"></a>三、进程死后拉活的方案</h1><p>1、JobSheduler<br>JobSheduler是作为进程死后复活的一种手段，这种方式即使用户强制关闭，也能被拉起来。<br>2、将 Service 设置为 START_STICKY，利用系统机制在 Service 挂掉后自动拉活：<br>如下两种情况无法拉活：<br>Service 第一次被异常杀死后会在5秒内重启，第二次被杀死会在10秒内重启，第三次会在20秒内重启，一旦在短时间内 Service 被杀死达到5次，则系统不再拉起；<br>进程被取得 Root 权限的管理工具或系统工具通过 forestop 停止掉，无法重启。</p>
+
+          
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/04/30/okhttp源码解析-1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="DaQiang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://raw.githubusercontent.com/2227056071/imges/master/phone.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+                <a class="post-title-link" href="/2018/04/30/okhttp源码解析-1/" itemprop="url">
+                  okhttp-源码解析
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-04-30T20:57:58+08:00">
+                2018-04-30
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/04/30/okhttp源码解析-1/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2018/04/30/okhttp源码解析-1/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/2018/04/30/okhttp源码解析-1/" class="leancloud_visitors" data-flag-title="okhttp-源码解析">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数 </span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h3 id="如何导入-okhttp-源码？"><a href="#如何导入-okhttp-源码？" class="headerlink" title="如何导入 okhttp 源码？"></a>如何导入 okhttp 源码？</h3><p>okhttp 源码工程是一个 maven 构建的 java 工程，不支持 android studio 导入(自己折腾了使用了 android studio 好久发现根本编译不过去，网上有的文章说支持 android studio 导入，误人子弟。。比如<a href="https://www.jianshu.com/p/fb6e9c99f800" target="_blank" rel="external"></a>.<br>okhttp 源码工程需要使用 <strong>IntelliJ IDEA</strong>  导入。具体可参考：<a href="http://lowett.com/2017/02/13/okhttp-2/" target="_blank" rel="external">IntelliJ IDEA导入 OkHttp</a>。<br>按照该链接编译成功并运行：<br><img src="https://raw.githubusercontent.com/2227056071/imges/master/okhttp_1.png" width="60%" height="60%"></p>
+<h3 id="源码分析"><a href="#源码分析" class="headerlink" title="源码分析"></a>源码分析</h3><p>现在就可以打断点进行调试了。<br>以 GetExample.java 文件里发送 get 请求为例，来分析一下 okhttp 的执行流程。<br>GetExample.java:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">Request request = new Request.Builder()</div><div class="line">    .url(url)</div><div class="line">    .build();</div><div class="line">try (Response response = client.newCall(request).execute()) &#123;</div><div class="line">  return response.body().string();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>代码按照如下顺序依次执行：execute() -&gt; getResponseWithInterceptorChain(),重点分析 getResponseWithInterceptorChain()：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line">Response getResponseWithInterceptorChain() throws IOException &#123;</div><div class="line">  // Build a full stack of interceptors.</div><div class="line">  List&lt;Interceptor&gt; interceptors = new ArrayList&lt;&gt;();</div><div class="line">  interceptors.addAll(client.interceptors());</div><div class="line">  interceptors.add(retryAndFollowUpInterceptor);</div><div class="line">  interceptors.add(new BridgeInterceptor(client.cookieJar()));</div><div class="line">  interceptors.add(new CacheInterceptor(client.internalCache()));</div><div class="line">  interceptors.add(new ConnectInterceptor(client));</div><div class="line">  if (!forWebSocket) &#123;</div><div class="line">    interceptors.addAll(client.networkInterceptors());</div><div class="line">  &#125;</div><div class="line">  interceptors.add(new CallServerInterceptor(forWebSocket));</div><div class="line"></div><div class="line">  Interceptor.Chain chain = new RealInterceptorChain(interceptors, null, null, null, 0,</div><div class="line">      originalRequest, this, eventListener, client.connectTimeoutMillis(),</div><div class="line">      client.readTimeoutMillis(), client.writeTimeoutMillis());</div><div class="line"></div><div class="line">  return chain.proceed(originalRequest);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>上面的代码展示了 okhttp 核心流程：不同层次的拦截器通过 <strong>责任链模式</strong> 对 Request 和 Response 进行处理。<br>如果不清楚责任链模式，可参考<a href="http://www.runoob.com/design-pattern/chain-of-responsibility-pattern.html" target="_blank" rel="external">责任链模式</a>。按照我的理解，责任链模式是一个事件传递过来以后，会有相应的对象进行处理，具体是哪个或者哪些对象处理需要根据实际情况进行判断。okhttp 里的责任链模式可见如下伪代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">Response getResponseWithInterceptorChain() throws IOException &#123;</div><div class="line">  // 第一次传入的是 0 代表执行第一个拦截器</div><div class="line">  Interceptor.Chain chain = new RealInterceptorChain(interceptors, null, null, null, 0,...);</div><div class="line">return chain.proceed(originalRequest);</div><div class="line">&#125;</div><div class="line">chain.proceed()</div><div class="line">&#123;</div><div class="line">  //递增执行后面拦截器的代码</div><div class="line">  RealInterceptorChain next = new RealInterceptorChain(index + 1);</div><div class="line">  Interceptor interceptor = interceptors.get(index);</div><div class="line">  Response response = interceptor.intercept(next);  </div><div class="line">&#125;</div><div class="line"> interceptor.intercept(Chain chain)</div><div class="line"> &#123;</div><div class="line">   chain.proceed(originalRequest);</div><div class="line"> &#125;</div></pre></td></tr></table></figure>
+<p><strong>拦截器是 OkHttp 的精髓</strong>。<br>client.interceptors() ，首先加入 interceptors 的是用户自定义的拦截器，比如修改请求头的拦截器等；<br>RetryAndFollowUpInterceptor 是用来重试和重定向的拦截器，在下面我们会讲到；<br>BridgeInterceptor 是用来将用户友好的请求转化为向服务器的请求，之后又把服务器的响应转化为对用户友好的响应；<br>CacheInterceptor 是缓存拦截器，若存在缓存并且可用就直接返回该缓存，否则会向服务器请求；<br>ConnectInterceptor 用来建立连接的拦截器；<br>client.networkInterceptors() 加入用户自定义的 networkInterceptors ;<br>CallServerInterceptor 是真正向服务器发出请求且得到响应的拦截器；<br>最后在聚合了这些拦截器后，利用 RealInterceptorChain 来链式调用这些拦截器。</p>
+<p>上面只是展示了大致的流程，具体还有很多细节值得研究。</p>
+
+          
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/04/08/camera-tip/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="DaQiang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://raw.githubusercontent.com/2227056071/imges/master/phone.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+                <a class="post-title-link" href="/2018/04/08/camera-tip/" itemprop="url">
+                  camera tip
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-04-08T21:00:59+08:00">
+                2018-04-08
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/04/08/camera-tip/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2018/04/08/camera-tip/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/2018/04/08/camera-tip/" class="leancloud_visitors" data-flag-title="camera tip">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数 </span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>有一个打开手机手电筒的需求，在二维码扫描框下面加个按钮，让用户可以打开手电筒，类似摩拜这样：</p>
+<p><img src="https://github.com/2227056071/imges/raw/master/light.jpg" width="40%" height="40%"></p>
+<p>想着蛮简单：直接调用系统 Api 就可以了：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">if (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.M) &#123;</div><div class="line">    manager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);</div><div class="line">    try &#123;</div><div class="line">        String[] camerList = manager.getCameraIdList();</div><div class="line">        manager.setTorchMode(&quot;0&quot;, true);</div><div class="line">    &#125; catch (CameraAccessException e) &#123;</div><div class="line">        Log.e(&quot;error&quot;, e.getMessage());</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>可是运行程序的时候程序报错：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">error: CAMERA_IN_USE (4): setTorchMode:1405: Torch for camera &quot;0&quot; is not</div><div class="line">available due to an existing camera user</div></pre></td></tr></table></figure></p>
+<p>在网上搜索好久，没有找到什么有用的解决办法，阅读 android 系统源码也没有好的思路。<br>报错信息提示相机已经被占用了，自己重新看了看需求，猜想可能是二维码扫描框占用了相机.<br>查看二维码扫描框的代码发现它调用的是老版本的相机 Api : android.hardware.Camera<br>此 Api 从 android 5.0 开始被废弃了（Deprecated since API level 21）。<br>终于找到问题了，原来是<strong>二维码扫描框用的是老 Api,而开启手电筒使用的是新 Api:<br>android.hardware.camera2.CameraManager</strong> .将二维码扫描框的代码修改后，手电筒的功能就<br>正常了</p>
+
+          
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/09/24/test/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="DaQiang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://raw.githubusercontent.com/2227056071/imges/master/phone.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+                <a class="post-title-link" href="/2017/09/24/test/" itemprop="url">
+                  rotateTextView
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-09-24T00:00:00+08:00">
+                2017-09-24
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2017/09/24/test/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2017/09/24/test/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/2017/09/24/test/" class="leancloud_visitors" data-flag-title="rotateTextView">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数 </span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>最近碰到一个签名区的需求：要求文字横屏显示，大致效果如下：<br><img src="https://raw.githubusercontent.com/2227056071/imges/master/rotateTextView_1.png" alt=""></p>
+<p>一开始想着这不是很简单:只要把系统自带 TextView 旋转 90 度就可以了。自己试了试，效果是实现了，可是碰到了一个问题:旋转后 View 在布局中所占据的宽度并没有改变，导致旋转后 view 上方出现了一段空白。在 github 上面搜了几个项目发现都没有考虑这个问题。那就索性自己撸一个出来。</p>
+<p>思路如下：在测量方法 onMeasure() 中改变控件宽高：<br>  setMeasuredDimension(mHeight,mWidth);<br>在绘制方法 onDraw() 中改变Canvas坐标系，使文字在竖直方向绘制，绘制文字时借助 StaticLayout 使文字能够自动换行。</p>
+<p>demo 工程代码地址：<a href="https://github.com/2227056071/RotateTextView.git" target="_blank" rel="external">demo地址</a></p>
+
+          
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/06/17/20170617/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -605,7 +1506,7 @@ if (&quot;arm64-v8a&quot;.equals(abi) || &quot;armeabi-v7a&quot;.equals(abi)) {
           
             <div class="site-state-item site-state-posts">
               <a href="/archives">
-                <span class="site-state-item-count">22</span>
+                <span class="site-state-item-count">28</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -618,7 +1519,7 @@ if (&quot;arm64-v8a&quot;.equals(abi) || &quot;armeabi-v7a&quot;.equals(abi)) {
             
             <div class="site-state-item site-state-tags">
               
-                <span class="site-state-item-count">4</span>
+                <span class="site-state-item-count">7</span>
                 <span class="site-state-item-name">标签</span>
               
             </div>

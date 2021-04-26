@@ -1,0 +1,866 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="热修复," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.0" />
+
+
+
+
+
+
+<meta name="description" content="Tinker dex 代码修复Dex 代码的修复方案是 classloader 机制。具体原理是将修复后的 dex 文件插入到 dex 数组的最前面。  众所周知，Android 工程的 java 代码会被编译打包放在 dex 文件中。dex 结构图如下:  使用 010Editor 程序可以清晰查看 dex 文件:  dex 的 diff dex 文件的差分采用了微信自研的 DexDiff 算法">
+<meta name="keywords" content="热修复">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Tinker dex 代码修复解析">
+<meta property="og:url" content="http://yoursite.com/2021/04/23/## Tinker 代码修复/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Tinker dex 代码修复Dex 代码的修复方案是 classloader 机制。具体原理是将修复后的 dex 文件插入到 dex 数组的最前面。  众所周知，Android 工程的 java 代码会被编译打包放在 dex 文件中。dex 结构图如下:  使用 010Editor 程序可以清晰查看 dex 文件:  dex 的 diff dex 文件的差分采用了微信自研的 DexDiff 算法">
+<meta property="og:image" content="http://mmbiz.qpic.cn/mmbiz/0aYRVN1mAJwR6vqR4Yv6V3zIvjqmgdu7L1OTRicUdpKy3Txd5eancPZXSWKVic4S9A7rUticj9aKY5UhfbAhjpLjg/640?wx_fmt=png&tp=webp&wxfrom=5&wx_lazy=1&wx_co=1">
+<meta property="og:image" content="https://user-gold-cdn.xitu.io/2019/5/18/16acab9179e7b6a2?imageView2/0/w/1280/h/960/format/webp/ignore-error/1">
+<meta property="og:image" content="https://img-blog.csdn.net/20170219232145296?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvc2luYXRfMTgyNjg4ODE=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center">
+<meta property="og:image" content="https://raw.githubusercontent.com/LaurenceYang/tinker-dex-dump/master/asserts/dex%20format.png">
+<meta property="og:updated_time" content="2021-04-26T15:08:26.207Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Tinker dex 代码修复解析">
+<meta name="twitter:description" content="Tinker dex 代码修复Dex 代码的修复方案是 classloader 机制。具体原理是将修复后的 dex 文件插入到 dex 数组的最前面。  众所周知，Android 工程的 java 代码会被编译打包放在 dex 文件中。dex 结构图如下:  使用 010Editor 程序可以清晰查看 dex 文件:  dex 的 diff dex 文件的差分采用了微信自研的 DexDiff 算法">
+<meta name="twitter:image" content="http://mmbiz.qpic.cn/mmbiz/0aYRVN1mAJwR6vqR4Yv6V3zIvjqmgdu7L1OTRicUdpKy3Txd5eancPZXSWKVic4S9A7rUticj9aKY5UhfbAhjpLjg/640?wx_fmt=png&tp=webp&wxfrom=5&wx_lazy=1&wx_co=1">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"right","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2021/04/23/## Tinker 代码修复/"/>
+
+
+
+
+
+  <title> Tinker dex 代码修复解析 | Hexo </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-right page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/04/23/## Tinker 代码修复/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="DaQiang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://raw.githubusercontent.com/2227056071/imges/master/phone.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Tinker dex 代码修复解析
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-04-23T00:00:00+08:00">
+                2021-04-23
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2021/04/23/## Tinker 代码修复/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2021/04/23/## Tinker 代码修复/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/2021/04/23/## Tinker 代码修复/" class="leancloud_visitors" data-flag-title="Tinker dex 代码修复解析">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数 </span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="Tinker-dex-代码修复"><a href="#Tinker-dex-代码修复" class="headerlink" title="Tinker dex 代码修复"></a>Tinker dex 代码修复</h2><p>Dex 代码的修复方案是 classloader 机制。具体原理是将修复后的 dex 文件插入到 dex 数组的最前面。</p>
+<p><img src="http://mmbiz.qpic.cn/mmbiz/0aYRVN1mAJwR6vqR4Yv6V3zIvjqmgdu7L1OTRicUdpKy3Txd5eancPZXSWKVic4S9A7rUticj9aKY5UhfbAhjpLjg/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="加载dex"></p>
+<p>众所周知，Android 工程的 java 代码会被编译打包放在 dex 文件中。dex 结构图如下:</p>
+<p><img src="https://user-gold-cdn.xitu.io/2019/5/18/16acab9179e7b6a2?imageView2/0/w/1280/h/960/format/webp/ignore-error/1" alt="dex结构图"></p>
+<p>使用 010Editor 程序可以清晰查看 dex 文件:</p>
+<p><img src="https://img-blog.csdn.net/20170219232145296?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvc2luYXRfMTgyNjg4ODE=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center" alt="010查看dex文件"></p>
+<h3 id="dex-的-diff"><a href="#dex-的-diff" class="headerlink" title="dex 的 diff"></a>dex 的 diff</h3><p> dex 文件的差分采用了微信自研的 DexDiff 算法。相比 BsDiff 以文件粒度进行差分，DexDiff 算法深度利用Dex的格式来减少差异的大小，粒度更小。</p>
+<p> dex 差分的入口是在 DexPatchGenerator 类。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">// 构造函数传入了新 dex 文件和老 dex 文件,Dex 的构造函数会将文件解析转换为 Dex 对象</div><div class="line">public DexPatchGenerator(File oldDexFile, File newDexFile) throws IOException &#123;</div><div class="line">    this(new Dex(oldDexFile), new Dex(newDexFile));</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>executeAndSaveTo 用来生成差分包。它对 dex 各区域的数据分别进行差分:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div><div class="line">105</div><div class="line">106</div></pre></td><td class="code"><pre><div class="line">public void executeAndSaveTo(OutputStream out) throws IOException &#123;</div><div class="line">    // Firstly, collect information of items we want to remove additionally</div><div class="line">    // in new dex and set them to corresponding diff algorithm implementations.</div><div class="line">    Pattern[] classNamePatterns = new Pattern[this.additionalRemovingClassPatternSet.size()];</div><div class="line">    int classNamePatternCount = 0;</div><div class="line">    for (String regExStr : this.additionalRemovingClassPatternSet) &#123;</div><div class="line">        classNamePatterns[classNamePatternCount++] = Pattern.compile(regExStr);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    List&lt;Integer&gt; typeIdOfClassDefsToRemove = new ArrayList&lt;&gt;(classNamePatternCount);</div><div class="line">    List&lt;Integer&gt; offsetOfClassDatasToRemove = new ArrayList&lt;&gt;(classNamePatternCount);</div><div class="line">    for (ClassDef classDef : this.newDex.classDefs()) &#123;</div><div class="line">        String typeName = this.newDex.typeNames().get(classDef.typeIndex);</div><div class="line">        for (Pattern pattern : classNamePatterns) &#123;</div><div class="line">            if (pattern.matcher(typeName).matches()) &#123;</div><div class="line">                typeIdOfClassDefsToRemove.add(classDef.typeIndex);</div><div class="line">                offsetOfClassDatasToRemove.add(classDef.classDataOffset);</div><div class="line">                break;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    ((ClassDefSectionDiffAlgorithm) this.classDefSectionDiffAlg)</div><div class="line">            .setTypeIdOfClassDefsToRemove(typeIdOfClassDefsToRemove);</div><div class="line">    ((ClassDataSectionDiffAlgorithm) this.classDataSectionDiffAlg)</div><div class="line">            .setOffsetOfClassDatasToRemove(offsetOfClassDatasToRemove);</div><div class="line"></div><div class="line">    // Then, run diff algorithms according to sections&apos; dependencies.</div><div class="line"></div><div class="line">    // Use size calculated by algorithms above or from dex file definition to</div><div class="line">    // calculate sections&apos; offset and patched dex size.</div><div class="line"></div><div class="line">    // Calculate header and id sections size, so that we can work out</div><div class="line">    // the base offset of typeLists Section.</div><div class="line">    int patchedheaderSize = SizeOf.HEADER_ITEM;</div><div class="line">    int patchedStringIdsSize = newDex.getTableOfContents().stringIds.size * SizeOf.STRING_ID_ITEM;</div><div class="line">    int patchedTypeIdsSize = newDex.getTableOfContents().typeIds.size * SizeOf.TYPE_ID_ITEM;</div><div class="line"></div><div class="line">    // Although simulatePatchOperation can calculate this value, since protoIds section</div><div class="line">    // depends on typeLists section, we can&apos;t run protoIds Section&apos;s simulatePatchOperation</div><div class="line">    // method so far. Instead we calculate protoIds section&apos;s size using information in newDex</div><div class="line">    // directly.</div><div class="line">    int patchedProtoIdsSize = newDex.getTableOfContents().protoIds.size * SizeOf.PROTO_ID_ITEM;</div><div class="line"></div><div class="line">    int patchedFieldIdsSize = newDex.getTableOfContents().fieldIds.size * SizeOf.MEMBER_ID_ITEM;</div><div class="line">    int patchedMethodIdsSize = newDex.getTableOfContents().methodIds.size * SizeOf.MEMBER_ID_ITEM;</div><div class="line">    int patchedClassDefsSize = newDex.getTableOfContents().classDefs.size * SizeOf.CLASS_DEF_ITEM;</div><div class="line"></div><div class="line">    int patchedIdSectionSize =</div><div class="line">            patchedStringIdsSize</div><div class="line">                    + patchedTypeIdsSize</div><div class="line">                    + patchedProtoIdsSize</div><div class="line">                    + patchedFieldIdsSize</div><div class="line">                    + patchedMethodIdsSize</div><div class="line">                    + patchedClassDefsSize;</div><div class="line"></div><div class="line">    this.patchedHeaderOffset = 0;</div><div class="line"></div><div class="line">    // The diff works on each sections obey such procedure:</div><div class="line">    //  1. Execute diff algorithms to calculate indices of items we need to add, del and replace.</div><div class="line">    //  2. Execute patch algorithm simulation to calculate indices and offsets mappings that is</div><div class="line">    //  necessary to next section&apos;s diff works.</div><div class="line"></div><div class="line">    // Immediately do the patch simulation so that we can know:</div><div class="line">    //  1. Indices and offsets mapping between old dex and patched dex.</div><div class="line">    //  2. Indices and offsets mapping between new dex and patched dex.</div><div class="line">    // These information will be used to do next diff works.</div><div class="line"></div><div class="line">    //对字符串区域的差分</div><div class="line">    this.patchedStringIdsOffset = patchedHeaderOffset + patchedheaderSize;</div><div class="line">    if (this.oldDex.getTableOfContents().stringIds.isElementFourByteAligned) &#123;</div><div class="line">        this.patchedStringIdsOffset</div><div class="line">                = SizeOf.roundToTimesOfFour(this.patchedStringIdsOffset);</div><div class="line">    &#125;</div><div class="line">    this.stringDataSectionDiffAlg.execute();</div><div class="line">    this.patchedStringDataItemsOffset = patchedheaderSize + patchedIdSectionSize;</div><div class="line">    if (this.oldDex.getTableOfContents().stringDatas.isElementFourByteAligned) &#123;</div><div class="line">        this.patchedStringDataItemsOffset</div><div class="line">                = SizeOf.roundToTimesOfFour(this.patchedStringDataItemsOffset);</div><div class="line">    &#125;</div><div class="line">    this.stringDataSectionDiffAlg.simulatePatchOperation(this.patchedStringDataItemsOffset);</div><div class="line"></div><div class="line">   ......</div><div class="line"></div><div class="line">    this.classDefSectionDiffAlg.execute();</div><div class="line">    this.patchedClassDefsOffset = this.patchedMethodIdsOffset + patchedMethodIdsSize;</div><div class="line">    if (this.oldDex.getTableOfContents().classDefs.isElementFourByteAligned) &#123;</div><div class="line">        this.patchedClassDefsOffset = SizeOf.roundToTimesOfFour(this.patchedClassDefsOffset);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    // Calculate any values we still know nothing about them.</div><div class="line">    this.patchedMapListOffset</div><div class="line">            = this.patchedEncodedArrayItemsOffset</div><div class="line">            + this.encodedArraySectionDiffAlg.getPatchedSectionSize();</div><div class="line">    if (this.oldDex.getTableOfContents().mapList.isElementFourByteAligned) &#123;</div><div class="line">        this.patchedMapListOffset = SizeOf.roundToTimesOfFour(this.patchedMapListOffset);</div><div class="line">    &#125;</div><div class="line">    int patchedMapListSize = newDex.getTableOfContents().mapList.byteCount;</div><div class="line"></div><div class="line">    this.patchedDexSize</div><div class="line">            = this.patchedMapListOffset</div><div class="line">            + patchedMapListSize;</div><div class="line"></div><div class="line">    // Finally, write results to patch file.</div><div class="line">    writeResultToStream(out);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>差分工作是在 DexSectionDiffAlgorithm.java 中完成的，DexSectionDiffAlgorithm 是个抽象类，它的 execute 方法描述了差分的大致骨架,具体的实现是在各个子类完成的。骨架代码如下:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div><div class="line">105</div><div class="line">106</div><div class="line">107</div><div class="line">108</div><div class="line">109</div><div class="line">110</div><div class="line">111</div><div class="line">112</div><div class="line">113</div><div class="line">114</div><div class="line">115</div><div class="line">116</div><div class="line">117</div><div class="line">118</div><div class="line">119</div><div class="line">120</div></pre></td><td class="code"><pre><div class="line">public void execute() &#123;</div><div class="line">    this.patchOperationList.clear();</div><div class="line"></div><div class="line">		//收集新老 dex 里的数据项、进行排序操作</div><div class="line">    this.adjustedOldIndexedItemsWithOrigOrder = collectSectionItems(this.oldDex, true);</div><div class="line">    this.oldItemCount = this.adjustedOldIndexedItemsWithOrigOrder.length;</div><div class="line"></div><div class="line">    AbstractMap.SimpleEntry&lt;Integer, T&gt;[] adjustedOldIndexedItems = new AbstractMap.SimpleEntry[this.oldItemCount];</div><div class="line">    System.arraycopy(this.adjustedOldIndexedItemsWithOrigOrder, 0, adjustedOldIndexedItems, 0, this.oldItemCount);</div><div class="line">    Arrays.sort(adjustedOldIndexedItems, this.comparatorForItemDiff);</div><div class="line"></div><div class="line">    AbstractMap.SimpleEntry&lt;Integer, T&gt;[] adjustedNewIndexedItems = collectSectionItems(this.newDex, false);</div><div class="line">    this.newItemCount = adjustedNewIndexedItems.length;</div><div class="line">    Arrays.sort(adjustedNewIndexedItems, this.comparatorForItemDiff);</div><div class="line"></div><div class="line">		//使用两个指针遍历新老元素，将新增元素、删除的元素保存到 patchOperationList</div><div class="line">    int oldCursor = 0;</div><div class="line">    int newCursor = 0;</div><div class="line">    while (oldCursor &lt; this.oldItemCount || newCursor &lt; this.newItemCount) &#123;</div><div class="line">        if (oldCursor &gt;= this.oldItemCount) &#123;</div><div class="line">            // rest item are all newItem.</div><div class="line">            while (newCursor &lt; this.newItemCount) &#123;</div><div class="line">                AbstractMap.SimpleEntry&lt;Integer, T&gt; newIndexedItem = adjustedNewIndexedItems[newCursor++];</div><div class="line">                this.patchOperationList.add(new PatchOperation&lt;&gt;(PatchOperation.OP_ADD, newIndexedItem.getKey(), newIndexedItem.getValue()));</div><div class="line">            &#125;</div><div class="line">        &#125; elseu a</div><div class="line">        if (newCursor &gt;= newItemCount) &#123;</div><div class="line">            // rest item are all oldItem.</div><div class="line">            while (oldCursor &lt; oldItemCount) &#123;</div><div class="line">                AbstractMap.SimpleEntry&lt;Integer, T&gt; oldIndexedItem = adjustedOldIndexedItems[oldCursor++];</div><div class="line">                int deletedIndex = oldIndexedItem.getKey();</div><div class="line">                int deletedOffset = getItemOffsetOrIndex(deletedIndex, oldIndexedItem.getValue());</div><div class="line">                this.patchOperationList.add(new PatchOperation&lt;T&gt;(PatchOperation.OP_DEL, deletedIndex));</div><div class="line">                markDeletedIndexOrOffset(this.oldToPatchedIndexMap, deletedIndex, deletedOffset);</div><div class="line">            &#125;</div><div class="line">        &#125; else &#123;</div><div class="line">            AbstractMap.SimpleEntry&lt;Integer, T&gt; oldIndexedItem = adjustedOldIndexedItems[oldCursor];</div><div class="line">            AbstractMap.SimpleEntry&lt;Integer, T&gt; newIndexedItem = adjustedNewIndexedItems[newCursor];</div><div class="line">            int cmpRes = oldIndexedItem.getValue().compareTo(newIndexedItem.getValue());</div><div class="line">            if (cmpRes &lt; 0) &#123;</div><div class="line">                int deletedIndex = oldIndexedItem.getKey();</div><div class="line">                int deletedOffset = getItemOffsetOrIndex(deletedIndex, oldIndexedItem.getValue());</div><div class="line">                this.patchOperationList.add(new PatchOperation&lt;T&gt;(PatchOperation.OP_DEL, deletedIndex));</div><div class="line">                markDeletedIndexOrOffset(this.oldToPatchedIndexMap, deletedIndex, deletedOffset);</div><div class="line">                ++oldCursor;</div><div class="line">            &#125; else</div><div class="line">            if (cmpRes &gt; 0) &#123;</div><div class="line">                this.patchOperationList.add(new PatchOperation&lt;&gt;(PatchOperation.OP_ADD, newIndexedItem.getKey(), newIndexedItem.getValue()));</div><div class="line">                ++newCursor;</div><div class="line">            &#125; else &#123;</div><div class="line">                int oldIndex = oldIndexedItem.getKey();</div><div class="line">                int newIndex = newIndexedItem.getKey();</div><div class="line">                int oldOffset = getItemOffsetOrIndex(oldIndexedItem.getKey(), oldIndexedItem.getValue());</div><div class="line">                int newOffset = getItemOffsetOrIndex(newIndexedItem.getKey(), newIndexedItem.getValue());</div><div class="line"></div><div class="line">                if (oldIndex != newIndex) &#123;</div><div class="line">                    this.oldIndexToNewIndexMap.put(oldIndex, newIndex);</div><div class="line">                &#125;</div><div class="line"></div><div class="line">                if (oldOffset != newOffset) &#123;</div><div class="line">                    this.oldOffsetToNewOffsetMap.put(oldOffset, newOffset);</div><div class="line">                &#125;</div><div class="line"></div><div class="line">                ++oldCursor;</div><div class="line">                ++newCursor;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    // So far all diff works are done. Then we perform some optimize works.</div><div class="line">    // detail: &#123;OP_DEL idx&#125; followed by &#123;OP_ADD the_same_idx newItem&#125;</div><div class="line">    // will be replaced by &#123;OP_REPLACE idx newItem&#125;</div><div class="line">    Collections.sort(this.patchOperationList, comparatorForPatchOperationOpt);</div><div class="line"></div><div class="line">		//针对 index 相同的 OP_DEL 和 OP_ADD 操作，将其转换为 OP_REPLACE</div><div class="line">    Iterator&lt;PatchOperation&lt;T&gt;&gt; patchOperationIt = this.patchOperationList.iterator();</div><div class="line">    PatchOperation&lt;T&gt; prevPatchOperation = null;</div><div class="line">    while (patchOperationIt.hasNext()) &#123;</div><div class="line">        PatchOperation&lt;T&gt; patchOperation = patchOperationIt.next();</div><div class="line">        if (prevPatchOperation != null</div><div class="line">            &amp;&amp; prevPatchOperation.op == PatchOperation.OP_DEL</div><div class="line">            &amp;&amp; patchOperation.op == PatchOperation.OP_ADD</div><div class="line">        ) &#123;</div><div class="line">            if (prevPatchOperation.index == patchOperation.index) &#123;</div><div class="line">                prevPatchOperation.op = PatchOperation.OP_REPLACE;</div><div class="line">                prevPatchOperation.newItem = patchOperation.newItem;</div><div class="line">                patchOperationIt.remove();</div><div class="line">                prevPatchOperation = null;</div><div class="line">            &#125; else &#123;</div><div class="line">                prevPatchOperation = patchOperation;</div><div class="line">            &#125;</div><div class="line">        &#125; else &#123;</div><div class="line">            prevPatchOperation = patchOperation;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    // Finally we record some information for the final calculations.</div><div class="line">    //把增加元素、删除元素、修改元素的操作分别存放到三个集合中</div><div class="line">    patchOperationIt = this.patchOperationList.iterator();</div><div class="line">    while (patchOperationIt.hasNext()) &#123;</div><div class="line">        PatchOperation&lt;T&gt; patchOperation = patchOperationIt.next();</div><div class="line">        switch (patchOperation.op) &#123;</div><div class="line">            case PatchOperation.OP_DEL: &#123;</div><div class="line">                indexToDelOperationMap.put(patchOperation.index, patchOperation);</div><div class="line">                break;</div><div class="line">            &#125;</div><div class="line">            case PatchOperation.OP_ADD: &#123;</div><div class="line">                indexToAddOperationMap.put(patchOperation.index, patchOperation);</div><div class="line">                break;</div><div class="line">            &#125;</div><div class="line">            case PatchOperation.OP_REPLACE: &#123;</div><div class="line">                indexToReplaceOperationMap.put(patchOperation.index, patchOperation);</div><div class="line">                break;</div><div class="line">            &#125;</div><div class="line">            default: &#123;</div><div class="line">                break;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>最后调用 DexPatchGenerator.java 的 writePatchOperations 方法将 patch 信息写入差分包文件中:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div></pre></td><td class="code"><pre><div class="line">private &lt;T extends Comparable&lt;T&gt;&gt; void writePatchOperations(</div><div class="line">        DexDataBuffer buffer, List&lt;PatchOperation&lt;T&gt;&gt; patchOperationList</div><div class="line">) &#123;</div><div class="line">    List&lt;Integer&gt; delOpIndexList = new ArrayList&lt;&gt;(patchOperationList.size());</div><div class="line">    List&lt;Integer&gt; addOpIndexList = new ArrayList&lt;&gt;(patchOperationList.size());</div><div class="line">    List&lt;Integer&gt; replaceOpIndexList = new ArrayList&lt;&gt;(patchOperationList.size());</div><div class="line">    List&lt;T&gt; newItemList = new ArrayList&lt;&gt;(patchOperationList.size());</div><div class="line"></div><div class="line">    for (PatchOperation&lt;T&gt; patchOperation : patchOperationList) &#123;</div><div class="line">        switch (patchOperation.op) &#123;</div><div class="line">            case PatchOperation.OP_DEL: &#123;</div><div class="line">                delOpIndexList.add(patchOperation.index);</div><div class="line">                break;</div><div class="line">            &#125;</div><div class="line">            case PatchOperation.OP_ADD: &#123;</div><div class="line">                addOpIndexList.add(patchOperation.index);</div><div class="line">                newItemList.add(patchOperation.newItem);</div><div class="line">                break;</div><div class="line">            &#125;</div><div class="line">            case PatchOperation.OP_REPLACE: &#123;</div><div class="line">                replaceOpIndexList.add(patchOperation.index);</div><div class="line">                newItemList.add(patchOperation.newItem);</div><div class="line">                break;</div><div class="line">            &#125;</div><div class="line">            default:</div><div class="line">                break;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    buffer.writeUleb128(delOpIndexList.size());</div><div class="line">    int lastIndex = 0;</div><div class="line">    for (Integer index : delOpIndexList) &#123;</div><div class="line">        buffer.writeSleb128(index - lastIndex);</div><div class="line">        lastIndex = index;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    buffer.writeUleb128(addOpIndexList.size());</div><div class="line">    lastIndex = 0;</div><div class="line">    for (Integer index : addOpIndexList) &#123;</div><div class="line">        buffer.writeSleb128(index - lastIndex);</div><div class="line">        lastIndex = index;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    buffer.writeUleb128(replaceOpIndexList.size());</div><div class="line">    lastIndex = 0;</div><div class="line">    for (Integer index : replaceOpIndexList) &#123;</div><div class="line">        buffer.writeSleb128(index - lastIndex);</div><div class="line">        lastIndex = index;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    for (T newItem : newItemList) &#123;</div><div class="line">        if (newItem instanceof StringData) &#123;</div><div class="line">            buffer.writeStringData((StringData) newItem);</div><div class="line">        &#125; else</div><div class="line">        if (newItem instanceof Integer) &#123;</div><div class="line">            // TypeId item.</div><div class="line">            buffer.writeInt((Integer) newItem);</div><div class="line">        &#125;</div><div class="line">        ......</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>以字符串的 diff 过程为例, 假设老 dex 文件中字符串序列为 “c”、”a”、”d”、”e” ，新dex 文件中字符串序列为 “c”、”b”、”e”、”f”</p>
+<p>先收集字符串序列，老字符串序列为  {0,”c”},{1,”a”},{2,”d”},{3,”e”},新字符串序列为 {0,”c”},{1,”b”},{2,”e”},{3,”f”}</p>
+<p>排序后的序列分别为 {1,”a”},{0,”c”},{2,”d”},{3,”e”} 和 {1,”b”},{0,”c”},{2,”e”},{3,”f”}</p>
+<p>使用指针 oldCursor、newCursor 遍历后得到的操作序列为 {OP_DEL,1}、{OP_ADD,1,”b”}、{OP_DEL,2}、{OP_ADD,3,”f”}</p>
+<p>对操作序列进行排序和合并后得到序列: {OP_REPLACE,1,”b”}、{OP_DEL,2}、{OP_ADD,3,”f”}</p>
+<p>将信息写入 patch 包对 StringData 区域中：</p>
+<p>各个区域的差分信息都写入 patch 包后，生成的 patch 包格式如下:</p>
+<p><img src="https://raw.githubusercontent.com/LaurenceYang/tinker-dex-dump/master/asserts/dex%20format.png" alt="微信自定义patch包格式"></p>
+<p>参考链接:</p>
+<p><a href="https://blog.csdn.net/lmj623565791/article/details/60874334" target="_blank" rel="external">Android 热修复 Tinker 源码分析之DexDiff / DexPatch</a></p>
+<p><a href="https://github.com/LaurenceYang/tinker-dex-dump" target="_blank" rel="external">tinker-dex-dump</a></p>
+<p><a href="https://source.android.com/devices/tech/dalvik/dex-format" target="_blank" rel="external">Dalvik Executable format</a></p>
+<p><a href="https://blog.csdn.net/sinat_18268881/article/details/55832757" target="_blank" rel="external">一篇文章带你搞懂DEX文件的结构</a></p>
+<p><a href="https://mp.weixin.qq.com/s?__biz=MzI1MTA1MzM2Nw==&amp;mid=400118620&amp;idx=1&amp;sn=b4fdd5055731290eef12ad0d17f39d4a" target="_blank" rel="external">安卓App热补丁动态修复技术介绍</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/热修复/" rel="tag"># 热修复</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2021/04/23/Tinker 源码解析/" rel="next" title="Tinker 源码解析">
+                <i class="fa fa-chevron-left"></i> Tinker 源码解析
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2021/04/23/Tinker 资源修复/" rel="prev" title="Tinker 资源修复">
+                Tinker 资源修复 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="https://raw.githubusercontent.com/2227056071/imges/master/phone.jpg"
+               alt="DaQiang" />
+          <p class="site-author-name" itemprop="name">DaQiang</p>
+           
+              <p class="site-description motion-element" itemprop="description">享受生命的精彩</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">28</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">7</span>
+                <span class="site-state-item-name">标签</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Tinker-dex-代码修复"><span class="nav-number">1.</span> <span class="nav-text">Tinker dex 代码修复</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#dex-的-diff"><span class="nav-number">1.1.</span> <span class="nav-text">dex 的 diff</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">DaQiang</span>
+</div>
+
+
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.0"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.0"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://huqiang.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'http://yoursite.com/2021/04/23/## Tinker 代码修复/';
+          this.page.identifier = '2021/04/23/## Tinker 代码修复/';
+          this.page.title = 'Tinker dex 代码修复解析';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://huqiang.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+  <script>AV.initialize("v18ufCuSLu5m1cLvghggolhj-gzGzoHsz", "iMokNFUCXO4BnEN3lV8c2xV7");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>

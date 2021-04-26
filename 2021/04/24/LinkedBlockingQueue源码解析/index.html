@@ -1,0 +1,850 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Java 源码解析," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.0" />
+
+
+
+
+
+
+<meta name="description" content="LinkedBlockingQueue 详解LinkedBlockingQueue 是 Java 并发包 java.util.concurrent 提供的一个集合类。 LinkedBlockingQueue 提供了 add()、put()、offer() 方法来添加元素，提供了 peek()、take()、poll() 方法来获取队首元素。 往队列中添加元素offer 方法源码如下： 123456">
+<meta name="keywords" content="Java 源码解析">
+<meta property="og:type" content="article">
+<meta property="og:title" content="LinkedBlockingQueue 详解">
+<meta property="og:url" content="http://yoursite.com/2021/04/24/LinkedBlockingQueue源码解析/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="LinkedBlockingQueue 详解LinkedBlockingQueue 是 Java 并发包 java.util.concurrent 提供的一个集合类。 LinkedBlockingQueue 提供了 add()、put()、offer() 方法来添加元素，提供了 peek()、take()、poll() 方法来获取队首元素。 往队列中添加元素offer 方法源码如下： 123456">
+<meta property="og:updated_time" content="2021-04-26T15:10:54.618Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="LinkedBlockingQueue 详解">
+<meta name="twitter:description" content="LinkedBlockingQueue 详解LinkedBlockingQueue 是 Java 并发包 java.util.concurrent 提供的一个集合类。 LinkedBlockingQueue 提供了 add()、put()、offer() 方法来添加元素，提供了 peek()、take()、poll() 方法来获取队首元素。 往队列中添加元素offer 方法源码如下： 123456">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    sidebar: {"position":"right","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2021/04/24/LinkedBlockingQueue源码解析/"/>
+
+
+
+
+
+  <title> LinkedBlockingQueue 详解 | Hexo </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-right page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Hexo</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/04/24/LinkedBlockingQueue源码解析/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="DaQiang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://raw.githubusercontent.com/2227056071/imges/master/phone.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                LinkedBlockingQueue 详解
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-04-24T00:00:00+08:00">
+                2021-04-24
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2021/04/24/LinkedBlockingQueue源码解析/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2021/04/24/LinkedBlockingQueue源码解析/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/2021/04/24/LinkedBlockingQueue源码解析/" class="leancloud_visitors" data-flag-title="LinkedBlockingQueue 详解">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数 </span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="LinkedBlockingQueue-详解"><a href="#LinkedBlockingQueue-详解" class="headerlink" title="LinkedBlockingQueue 详解"></a>LinkedBlockingQueue 详解</h2><p>LinkedBlockingQueue 是 Java 并发包 java.util.concurrent 提供的一个集合类。</p>
+<p>LinkedBlockingQueue 提供了 add()、put()、offer() 方法来添加元素，提供了 peek()、take()、poll() 方法来获取队首元素。</p>
+<h3 id="往队列中添加元素"><a href="#往队列中添加元素" class="headerlink" title="往队列中添加元素"></a>往队列中添加元素</h3><p>offer 方法源码如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div></pre></td><td class="code"><pre><div class="line">public boolean offer(E e) &#123;</div><div class="line">    if (e == null) throw new NullPointerException();</div><div class="line">    final AtomicInteger count = this.count;</div><div class="line">    //如果已达容量上限，则返回false</div><div class="line">    if (count.get() == capacity)</div><div class="line">        return false;</div><div class="line">    int c = -1;</div><div class="line">    Node&lt;E&gt; node = new Node&lt;E&gt;(e);</div><div class="line">    final ReentrantLock putLock = this.putLock;</div><div class="line">    //获取互斥锁</div><div class="line">    putLock.lock();</div><div class="line">    try &#123;</div><div class="line">        if (count.get() &lt; capacity) &#123;</div><div class="line">        		//将元素加入队尾</div><div class="line">            enqueue(node);</div><div class="line">            c = count.getAndIncrement();</div><div class="line">            if (c + 1 &lt; capacity)</div><div class="line">            		//如果元素数量未达上限，唤醒调用 notFull.await() 方法的线程</div><div class="line">                notFull.signal();</div><div class="line">        &#125;</div><div class="line">    &#125; finally &#123;</div><div class="line">        putLock.unlock();</div><div class="line">    &#125;</div><div class="line">    if (c == 0)</div><div class="line">        signalNotEmpty();</div><div class="line">    return c &gt;= 0;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>add 方法源码如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">public boolean add(E e) &#123;</div><div class="line">    if (offer(e))</div><div class="line">        return true;</div><div class="line">    else</div><div class="line">        throw new IllegalStateException(&quot;Queue full&quot;);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>add 方法简单地调用了 offer 方法，区别在于当添加元素失败的时候会抛出异常。</p>
+<p>接着看一下 put 方法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line">public void put(E e) throws InterruptedException &#123;</div><div class="line">    if (e == null) throw new NullPointerException();</div><div class="line">    int c = -1;</div><div class="line">    Node&lt;E&gt; node = new Node&lt;E&gt;(e);</div><div class="line">    final ReentrantLock putLock = this.putLock;</div><div class="line">    final AtomicInteger count = this.count;</div><div class="line">    putLock.lockInterruptibly();</div><div class="line">    try &#123;</div><div class="line">        // 当元素数量已满，暂停当前线程、释放 putLock 锁</div><div class="line">        while (count.get() == capacity) &#123;</div><div class="line">            notFull.await();</div><div class="line">        &#125;</div><div class="line">        //元素入队</div><div class="line">        enqueue(node);</div><div class="line">        c = count.getAndIncrement();</div><div class="line">        if (c + 1 &lt; capacity)</div><div class="line">            notFull.signal();</div><div class="line">    &#125; finally &#123;</div><div class="line">        putLock.unlock();</div><div class="line">    &#125;</div><div class="line">    if (c == 0)</div><div class="line">        signalNotEmpty();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>add()、put()、offer() 方法都可以添加元素，区别在于对于队列数量已满情况下的处理，当队列元素已满时，offer 方法会返回 false、ad d 方法会抛出异常、而 put 方法会暂停当前线程直至有空闲空间。</p>
+<h3 id="从队列中取元素"><a href="#从队列中取元素" class="headerlink" title="从队列中取元素"></a>从队列中取元素</h3><p>下面看一下 peek 的源码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">public E peek() &#123;</div><div class="line">    if (count.get() == 0)</div><div class="line">        return null;</div><div class="line">    final ReentrantLock takeLock = this.takeLock;</div><div class="line">    takeLock.lock();</div><div class="line">    try &#123;</div><div class="line">        Node&lt;E&gt; first = head.next;</div><div class="line">        if (first == null)</div><div class="line">        		//当队首为空的时候返回 null</div><div class="line">            return null;</div><div class="line">        else</div><div class="line">            return first.item;</div><div class="line">    &#125; finally &#123;</div><div class="line">        takeLock.unlock();</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>由源码可知，peek 方法只是返回队首元素的值，队首元素并未出队。</p>
+<p>poll 方法源码:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line">public E poll() &#123;</div><div class="line">    final AtomicInteger count = this.count;</div><div class="line">    if (count.get() == 0)</div><div class="line">        return null;</div><div class="line">    E x = null;</div><div class="line">    int c = -1;</div><div class="line">    final ReentrantLock takeLock = this.takeLock;</div><div class="line">    takeLock.lock();</div><div class="line">    try &#123;</div><div class="line">        if (count.get() &gt; 0) &#123;</div><div class="line">        		//当集合元素个数大于 0 的时候，队首元素出队列</div><div class="line">            x = dequeue();</div><div class="line">            c = count.getAndDecrement();</div><div class="line">            //唤醒调用 notEmpty.await 的线程</div><div class="line">            if (c &gt; 1)</div><div class="line">                notEmpty.signal();</div><div class="line">        &#125;</div><div class="line">    &#125; finally &#123;</div><div class="line">        takeLock.unlock();</div><div class="line">    &#125;</div><div class="line">    if (c == capacity)</div><div class="line">        signalNotFull();</div><div class="line">    return x;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>最后看一下 take 方法的源码:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line">public E take() throws InterruptedException &#123;</div><div class="line">    E x;</div><div class="line">    int c = -1;</div><div class="line">    final AtomicInteger count = this.count;</div><div class="line">    final ReentrantLock takeLock = this.takeLock;</div><div class="line">    takeLock.lockInterruptibly();</div><div class="line">    try &#123;</div><div class="line">    		// 当集合为空的时候，暂停当前线程使当前线程处于等待状态</div><div class="line">        while (count.get() == 0) &#123;</div><div class="line">            notEmpty.await();</div><div class="line">        &#125;</div><div class="line">        //出队列</div><div class="line">        x = dequeue();</div><div class="line">        c = count.getAndDecrement();</div><div class="line">        if (c &gt; 1)</div><div class="line">            notEmpty.signal();</div><div class="line">    &#125; finally &#123;</div><div class="line">        takeLock.unlock();</div><div class="line">    &#125;</div><div class="line">    if (c == capacity)</div><div class="line">        signalNotFull();</div><div class="line">    return x;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>peek()、take()、poll() 方法都可以获取队首元素，区别在于当队列元素数量为空的时候，peek() 和 poll() 方法会返回 null, 而 take() 方法会暂停当前线程直至队列中存在新的元素。还有一点，peek 方法只是返回队首元素的值，队首元素并不会出队。</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Java-源码解析/" rel="tag"># Java 源码解析</a>
+          
+        </div>
+      
+
+      
+        
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2021/04/24/CopyOnWriteArrayList 详解/" rel="next" title="CopyOnWriteArrayList 详解">
+                <i class="fa fa-chevron-left"></i> CopyOnWriteArrayList 详解
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2021/04/23/Tinker 源码解析/" rel="prev" title="Tinker 源码解析">
+                Tinker 源码解析 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="https://raw.githubusercontent.com/2227056071/imges/master/phone.jpg"
+               alt="DaQiang" />
+          <p class="site-author-name" itemprop="name">DaQiang</p>
+           
+              <p class="site-description motion-element" itemprop="description">享受生命的精彩</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives">
+                <span class="site-state-item-count">28</span>
+                <span class="site-state-item-name">日志</span>
+              </a>
+            </div>
+          
+
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              
+                <span class="site-state-item-count">7</span>
+                <span class="site-state-item-name">标签</span>
+              
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#LinkedBlockingQueue-详解"><span class="nav-number">1.</span> <span class="nav-text">LinkedBlockingQueue 详解</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#往队列中添加元素"><span class="nav-number">1.1.</span> <span class="nav-text">往队列中添加元素</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#从队列中取元素"><span class="nav-number">1.2.</span> <span class="nav-text">从队列中取元素</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">DaQiang</span>
+</div>
+
+
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.0"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.0"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://huqiang.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+          this.page.url = 'http://yoursite.com/2021/04/24/LinkedBlockingQueue源码解析/';
+          this.page.identifier = '2021/04/24/LinkedBlockingQueue源码解析/';
+          this.page.title = 'LinkedBlockingQueue 详解';
+        };
+        var d = document, s = d.createElement('script');
+        s.src = 'https://huqiang.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      </script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.1.js"></script>
+  <script>AV.initialize("v18ufCuSLu5m1cLvghggolhj-gzGzoHsz", "iMokNFUCXO4BnEN3lV8c2xV7");</script>
+  <script>
+    function showTime(Counter) {
+      var query = new AV.Query(Counter);
+      var entries = [];
+      var $visitors = $(".leancloud_visitors");
+
+      $visitors.each(function () {
+        entries.push( $(this).attr("id").trim() );
+      });
+
+      query.containedIn('url', entries);
+      query.find()
+        .done(function (results) {
+          var COUNT_CONTAINER_REF = '.leancloud-visitors-count';
+
+          if (results.length === 0) {
+            $visitors.find(COUNT_CONTAINER_REF).text(0);
+            return;
+          }
+
+          for (var i = 0; i < results.length; i++) {
+            var item = results[i];
+            var url = item.get('url');
+            var time = item.get('time');
+            var element = document.getElementById(url);
+
+            $(element).find(COUNT_CONTAINER_REF).text(time);
+          }
+          for(var i = 0; i < entries.length; i++) {
+            var url = entries[i];
+            var element = document.getElementById(url);
+            var countSpan = $(element).find(COUNT_CONTAINER_REF);
+            if( countSpan.text() == '') {
+              countSpan.text(0);
+            }
+          }
+        })
+        .fail(function (object, error) {
+          console.log("Error: " + error.code + " " + error.message);
+        });
+    }
+
+    function addCount(Counter) {
+      var $visitors = $(".leancloud_visitors");
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+      var query = new AV.Query(Counter);
+
+      query.equalTo("url", url);
+      query.find({
+        success: function(results) {
+          if (results.length > 0) {
+            var counter = results[0];
+            counter.fetchWhenSave(true);
+            counter.increment("time");
+            counter.save(null, {
+              success: function(counter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.get('time'));
+              },
+              error: function(counter, error) {
+                console.log('Failed to save Visitor num, with error message: ' + error.message);
+              }
+            });
+          } else {
+            var newcounter = new Counter();
+            /* Set ACL */
+            var acl = new AV.ACL();
+            acl.setPublicReadAccess(true);
+            acl.setPublicWriteAccess(true);
+            newcounter.setACL(acl);
+            /* End Set ACL */
+            newcounter.set("title", title);
+            newcounter.set("url", url);
+            newcounter.set("time", 1);
+            newcounter.save(null, {
+              success: function(newcounter) {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(newcounter.get('time'));
+              },
+              error: function(newcounter, error) {
+                console.log('Failed to create');
+              }
+            });
+          }
+        },
+        error: function(error) {
+          console.log('Error:' + error.code + " " + error.message);
+        }
+      });
+    }
+
+    $(function() {
+      var Counter = AV.Object.extend("Counter");
+      if ($('.leancloud_visitors').length == 1) {
+        addCount(Counter);
+      } else if ($('.post-title-link').length > 1) {
+        showTime(Counter);
+      }
+    });
+  </script>
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>
