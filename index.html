@@ -404,166 +404,6 @@
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/04/24/LinkedBlockingQueue源码解析/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="DaQiang">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="https://raw.githubusercontent.com/2227056071/imges/master/phone.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Hexo">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/2021/04/24/LinkedBlockingQueue源码解析/" itemprop="url">
-                  LinkedBlockingQueue 详解
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-04-24T00:00:00+08:00">
-                2021-04-24
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-              <span class="post-comments-count">
-                <span class="post-meta-divider">|</span>
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-comment-o"></i>
-                </span>
-                <a href="/2021/04/24/LinkedBlockingQueue源码解析/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2021/04/24/LinkedBlockingQueue源码解析/" itemprop="commentCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-          
-             <span id="/2021/04/24/LinkedBlockingQueue源码解析/" class="leancloud_visitors" data-flag-title="LinkedBlockingQueue 详解">
-               <span class="post-meta-divider">|</span>
-               <span class="post-meta-item-icon">
-                 <i class="fa fa-eye"></i>
-               </span>
-               
-                 <span class="post-meta-item-text">阅读次数 </span>
-               
-                 <span class="leancloud-visitors-count"></span>
-             </span>
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h2 id="LinkedBlockingQueue-详解"><a href="#LinkedBlockingQueue-详解" class="headerlink" title="LinkedBlockingQueue 详解"></a>LinkedBlockingQueue 详解</h2><p>LinkedBlockingQueue 是 Java 并发包 java.util.concurrent 提供的一个集合类。</p>
-<p>LinkedBlockingQueue 提供了 add()、put()、offer() 方法来添加元素，提供了 peek()、take()、poll() 方法来获取队首元素。</p>
-<h3 id="往队列中添加元素"><a href="#往队列中添加元素" class="headerlink" title="往队列中添加元素"></a>往队列中添加元素</h3><p>offer 方法源码如下：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div></pre></td><td class="code"><pre><div class="line">public boolean offer(E e) &#123;</div><div class="line">    if (e == null) throw new NullPointerException();</div><div class="line">    final AtomicInteger count = this.count;</div><div class="line">    //如果已达容量上限，则返回false</div><div class="line">    if (count.get() == capacity)</div><div class="line">        return false;</div><div class="line">    int c = -1;</div><div class="line">    Node&lt;E&gt; node = new Node&lt;E&gt;(e);</div><div class="line">    final ReentrantLock putLock = this.putLock;</div><div class="line">    //获取互斥锁</div><div class="line">    putLock.lock();</div><div class="line">    try &#123;</div><div class="line">        if (count.get() &lt; capacity) &#123;</div><div class="line">        		//将元素加入队尾</div><div class="line">            enqueue(node);</div><div class="line">            c = count.getAndIncrement();</div><div class="line">            if (c + 1 &lt; capacity)</div><div class="line">            		//如果元素数量未达上限，唤醒调用 notFull.await() 方法的线程</div><div class="line">                notFull.signal();</div><div class="line">        &#125;</div><div class="line">    &#125; finally &#123;</div><div class="line">        putLock.unlock();</div><div class="line">    &#125;</div><div class="line">    if (c == 0)</div><div class="line">        signalNotEmpty();</div><div class="line">    return c &gt;= 0;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>add 方法源码如下：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">public boolean add(E e) &#123;</div><div class="line">    if (offer(e))</div><div class="line">        return true;</div><div class="line">    else</div><div class="line">        throw new IllegalStateException(&quot;Queue full&quot;);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>add 方法简单地调用了 offer 方法，区别在于当添加元素失败的时候会抛出异常。</p>
-<p>接着看一下 put 方法：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line">public void put(E e) throws InterruptedException &#123;</div><div class="line">    if (e == null) throw new NullPointerException();</div><div class="line">    int c = -1;</div><div class="line">    Node&lt;E&gt; node = new Node&lt;E&gt;(e);</div><div class="line">    final ReentrantLock putLock = this.putLock;</div><div class="line">    final AtomicInteger count = this.count;</div><div class="line">    putLock.lockInterruptibly();</div><div class="line">    try &#123;</div><div class="line">        // 当元素数量已满，暂停当前线程、释放 putLock 锁</div><div class="line">        while (count.get() == capacity) &#123;</div><div class="line">            notFull.await();</div><div class="line">        &#125;</div><div class="line">        //元素入队</div><div class="line">        enqueue(node);</div><div class="line">        c = count.getAndIncrement();</div><div class="line">        if (c + 1 &lt; capacity)</div><div class="line">            notFull.signal();</div><div class="line">    &#125; finally &#123;</div><div class="line">        putLock.unlock();</div><div class="line">    &#125;</div><div class="line">    if (c == 0)</div><div class="line">        signalNotEmpty();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>add()、put()、offer() 方法都可以添加元素，区别在于对于队列数量已满情况下的处理，当队列元素已满时，offer 方法会返回 false、ad d 方法会抛出异常、而 put 方法会暂停当前线程直至有空闲空间。</p>
-<h3 id="从队列中取元素"><a href="#从队列中取元素" class="headerlink" title="从队列中取元素"></a>从队列中取元素</h3><p>下面看一下 peek 的源码：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">public E peek() &#123;</div><div class="line">    if (count.get() == 0)</div><div class="line">        return null;</div><div class="line">    final ReentrantLock takeLock = this.takeLock;</div><div class="line">    takeLock.lock();</div><div class="line">    try &#123;</div><div class="line">        Node&lt;E&gt; first = head.next;</div><div class="line">        if (first == null)</div><div class="line">        		//当队首为空的时候返回 null</div><div class="line">            return null;</div><div class="line">        else</div><div class="line">            return first.item;</div><div class="line">    &#125; finally &#123;</div><div class="line">        takeLock.unlock();</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>由源码可知，peek 方法只是返回队首元素的值，队首元素并未出队。</p>
-<p>poll 方法源码:</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line">public E poll() &#123;</div><div class="line">    final AtomicInteger count = this.count;</div><div class="line">    if (count.get() == 0)</div><div class="line">        return null;</div><div class="line">    E x = null;</div><div class="line">    int c = -1;</div><div class="line">    final ReentrantLock takeLock = this.takeLock;</div><div class="line">    takeLock.lock();</div><div class="line">    try &#123;</div><div class="line">        if (count.get() &gt; 0) &#123;</div><div class="line">        		//当集合元素个数大于 0 的时候，队首元素出队列</div><div class="line">            x = dequeue();</div><div class="line">            c = count.getAndDecrement();</div><div class="line">            //唤醒调用 notEmpty.await 的线程</div><div class="line">            if (c &gt; 1)</div><div class="line">                notEmpty.signal();</div><div class="line">        &#125;</div><div class="line">    &#125; finally &#123;</div><div class="line">        takeLock.unlock();</div><div class="line">    &#125;</div><div class="line">    if (c == capacity)</div><div class="line">        signalNotFull();</div><div class="line">    return x;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>最后看一下 take 方法的源码:</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line">public E take() throws InterruptedException &#123;</div><div class="line">    E x;</div><div class="line">    int c = -1;</div><div class="line">    final AtomicInteger count = this.count;</div><div class="line">    final ReentrantLock takeLock = this.takeLock;</div><div class="line">    takeLock.lockInterruptibly();</div><div class="line">    try &#123;</div><div class="line">    		// 当集合为空的时候，暂停当前线程使当前线程处于等待状态</div><div class="line">        while (count.get() == 0) &#123;</div><div class="line">            notEmpty.await();</div><div class="line">        &#125;</div><div class="line">        //出队列</div><div class="line">        x = dequeue();</div><div class="line">        c = count.getAndDecrement();</div><div class="line">        if (c &gt; 1)</div><div class="line">            notEmpty.signal();</div><div class="line">    &#125; finally &#123;</div><div class="line">        takeLock.unlock();</div><div class="line">    &#125;</div><div class="line">    if (c == capacity)</div><div class="line">        signalNotFull();</div><div class="line">    return x;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>peek()、take()、poll() 方法都可以获取队首元素，区别在于当队列元素数量为空的时候，peek() 和 poll() 方法会返回 null, 而 take() 方法会暂停当前线程直至队列中存在新的元素。还有一点，peek 方法只是返回队首元素的值，队首元素并不会出队。</p>
-
-          
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/04/24/CopyOnWriteArrayList 详解/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -682,6 +522,166 @@
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line">public E remove(int index) &#123;</div><div class="line">    final ReentrantLock lock = this.lock;</div><div class="line">    lock.lock();</div><div class="line">    try &#123;</div><div class="line">        Object[] elements = getArray();</div><div class="line">        int len = elements.length;</div><div class="line">        E oldValue = get(elements, index);</div><div class="line">        int numMoved = len - index - 1;</div><div class="line">        if (numMoved == 0)</div><div class="line">            setArray(Arrays.copyOf(elements, len - 1));</div><div class="line">        else &#123;</div><div class="line">            Object[] newElements = new Object[len - 1];</div><div class="line">            System.arraycopy(elements, 0, newElements, 0, index);</div><div class="line">            System.arraycopy(elements, index + 1, newElements, index,</div><div class="line">                             numMoved);</div><div class="line">            setArray(newElements);</div><div class="line">        &#125;</div><div class="line">        return oldValue;</div><div class="line">    &#125; finally &#123;</div><div class="line">        lock.unlock();</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">public E get(int index) &#123;</div><div class="line">    return get(getArray(), index);</div><div class="line">&#125;</div><div class="line">private E get(Object[] a, int index) &#123;</div><div class="line">        return (E) a[index];</div><div class="line">&#125;</div><div class="line">final Object[] getArray() &#123;</div><div class="line">        return array;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <p>由源码可知，CopyOnWriteArrayList 在新增或者删除元素，先获取可重入锁 ReentrantLock，拷贝原来的数组，在新的数组上面新增或者删除元素。CopyOnWriteArrayList 在读取元素的时候，直接在老数组上读取。CopyOnWriteArrayList 的读写操作是在不同的数组上面操作的，保证了多线程操作的安全性。</p>
+
+          
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/04/24/LinkedBlockingQueue源码解析/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="DaQiang">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="https://raw.githubusercontent.com/2227056071/imges/master/phone.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Hexo">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+                <a class="post-title-link" href="/2021/04/24/LinkedBlockingQueue源码解析/" itemprop="url">
+                  LinkedBlockingQueue 详解
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2021-04-24T00:00:00+08:00">
+                2021-04-24
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2021/04/24/LinkedBlockingQueue源码解析/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="2021/04/24/LinkedBlockingQueue源码解析/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+             <span id="/2021/04/24/LinkedBlockingQueue源码解析/" class="leancloud_visitors" data-flag-title="LinkedBlockingQueue 详解">
+               <span class="post-meta-divider">|</span>
+               <span class="post-meta-item-icon">
+                 <i class="fa fa-eye"></i>
+               </span>
+               
+                 <span class="post-meta-item-text">阅读次数 </span>
+               
+                 <span class="leancloud-visitors-count"></span>
+             </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h2 id="LinkedBlockingQueue-详解"><a href="#LinkedBlockingQueue-详解" class="headerlink" title="LinkedBlockingQueue 详解"></a>LinkedBlockingQueue 详解</h2><p>LinkedBlockingQueue 是 Java 并发包 java.util.concurrent 提供的一个集合类。</p>
+<p>LinkedBlockingQueue 提供了 add()、put()、offer() 方法来添加元素，提供了 peek()、take()、poll() 方法来获取队首元素。</p>
+<h3 id="往队列中添加元素"><a href="#往队列中添加元素" class="headerlink" title="往队列中添加元素"></a>往队列中添加元素</h3><p>offer 方法源码如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div></pre></td><td class="code"><pre><div class="line">public boolean offer(E e) &#123;</div><div class="line">    if (e == null) throw new NullPointerException();</div><div class="line">    final AtomicInteger count = this.count;</div><div class="line">    //如果已达容量上限，则返回false</div><div class="line">    if (count.get() == capacity)</div><div class="line">        return false;</div><div class="line">    int c = -1;</div><div class="line">    Node&lt;E&gt; node = new Node&lt;E&gt;(e);</div><div class="line">    final ReentrantLock putLock = this.putLock;</div><div class="line">    //获取互斥锁</div><div class="line">    putLock.lock();</div><div class="line">    try &#123;</div><div class="line">        if (count.get() &lt; capacity) &#123;</div><div class="line">        		//将元素加入队尾</div><div class="line">            enqueue(node);</div><div class="line">            c = count.getAndIncrement();</div><div class="line">            if (c + 1 &lt; capacity)</div><div class="line">            		//如果元素数量未达上限，唤醒调用 notFull.await() 方法的线程</div><div class="line">                notFull.signal();</div><div class="line">        &#125;</div><div class="line">    &#125; finally &#123;</div><div class="line">        putLock.unlock();</div><div class="line">    &#125;</div><div class="line">    if (c == 0)</div><div class="line">        signalNotEmpty();</div><div class="line">    return c &gt;= 0;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>add 方法源码如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">public boolean add(E e) &#123;</div><div class="line">    if (offer(e))</div><div class="line">        return true;</div><div class="line">    else</div><div class="line">        throw new IllegalStateException(&quot;Queue full&quot;);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>add 方法简单地调用了 offer 方法，区别在于当添加元素失败的时候会抛出异常。</p>
+<p>接着看一下 put 方法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line">public void put(E e) throws InterruptedException &#123;</div><div class="line">    if (e == null) throw new NullPointerException();</div><div class="line">    int c = -1;</div><div class="line">    Node&lt;E&gt; node = new Node&lt;E&gt;(e);</div><div class="line">    final ReentrantLock putLock = this.putLock;</div><div class="line">    final AtomicInteger count = this.count;</div><div class="line">    putLock.lockInterruptibly();</div><div class="line">    try &#123;</div><div class="line">        // 当元素数量已满，暂停当前线程、释放 putLock 锁</div><div class="line">        while (count.get() == capacity) &#123;</div><div class="line">            notFull.await();</div><div class="line">        &#125;</div><div class="line">        //元素入队</div><div class="line">        enqueue(node);</div><div class="line">        c = count.getAndIncrement();</div><div class="line">        if (c + 1 &lt; capacity)</div><div class="line">            notFull.signal();</div><div class="line">    &#125; finally &#123;</div><div class="line">        putLock.unlock();</div><div class="line">    &#125;</div><div class="line">    if (c == 0)</div><div class="line">        signalNotEmpty();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>add()、put()、offer() 方法都可以添加元素，区别在于对于队列数量已满情况下的处理，当队列元素已满时，offer 方法会返回 false、ad d 方法会抛出异常、而 put 方法会暂停当前线程直至有空闲空间。</p>
+<h3 id="从队列中取元素"><a href="#从队列中取元素" class="headerlink" title="从队列中取元素"></a>从队列中取元素</h3><p>下面看一下 peek 的源码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">public E peek() &#123;</div><div class="line">    if (count.get() == 0)</div><div class="line">        return null;</div><div class="line">    final ReentrantLock takeLock = this.takeLock;</div><div class="line">    takeLock.lock();</div><div class="line">    try &#123;</div><div class="line">        Node&lt;E&gt; first = head.next;</div><div class="line">        if (first == null)</div><div class="line">        		//当队首为空的时候返回 null</div><div class="line">            return null;</div><div class="line">        else</div><div class="line">            return first.item;</div><div class="line">    &#125; finally &#123;</div><div class="line">        takeLock.unlock();</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>由源码可知，peek 方法只是返回队首元素的值，队首元素并未出队。</p>
+<p>poll 方法源码:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line">public E poll() &#123;</div><div class="line">    final AtomicInteger count = this.count;</div><div class="line">    if (count.get() == 0)</div><div class="line">        return null;</div><div class="line">    E x = null;</div><div class="line">    int c = -1;</div><div class="line">    final ReentrantLock takeLock = this.takeLock;</div><div class="line">    takeLock.lock();</div><div class="line">    try &#123;</div><div class="line">        if (count.get() &gt; 0) &#123;</div><div class="line">        		//当集合元素个数大于 0 的时候，队首元素出队列</div><div class="line">            x = dequeue();</div><div class="line">            c = count.getAndDecrement();</div><div class="line">            //唤醒调用 notEmpty.await 的线程</div><div class="line">            if (c &gt; 1)</div><div class="line">                notEmpty.signal();</div><div class="line">        &#125;</div><div class="line">    &#125; finally &#123;</div><div class="line">        takeLock.unlock();</div><div class="line">    &#125;</div><div class="line">    if (c == capacity)</div><div class="line">        signalNotFull();</div><div class="line">    return x;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>最后看一下 take 方法的源码:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line">public E take() throws InterruptedException &#123;</div><div class="line">    E x;</div><div class="line">    int c = -1;</div><div class="line">    final AtomicInteger count = this.count;</div><div class="line">    final ReentrantLock takeLock = this.takeLock;</div><div class="line">    takeLock.lockInterruptibly();</div><div class="line">    try &#123;</div><div class="line">    		// 当集合为空的时候，暂停当前线程使当前线程处于等待状态</div><div class="line">        while (count.get() == 0) &#123;</div><div class="line">            notEmpty.await();</div><div class="line">        &#125;</div><div class="line">        //出队列</div><div class="line">        x = dequeue();</div><div class="line">        c = count.getAndDecrement();</div><div class="line">        if (c &gt; 1)</div><div class="line">            notEmpty.signal();</div><div class="line">    &#125; finally &#123;</div><div class="line">        takeLock.unlock();</div><div class="line">    &#125;</div><div class="line">    if (c == capacity)</div><div class="line">        signalNotFull();</div><div class="line">    return x;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>peek()、take()、poll() 方法都可以获取队首元素，区别在于当队列元素数量为空的时候，peek() 和 poll() 方法会返回 null, 而 take() 方法会暂停当前线程直至队列中存在新的元素。还有一点，peek 方法只是返回队首元素的值，队首元素并不会出队。</p>
 
           
         
@@ -892,7 +892,7 @@
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/04/23/## Tinker 代码修复/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/04/23/Tinker 代码修复/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="DaQiang">
@@ -914,7 +914,7 @@
             
               
                 
-                <a class="post-title-link" href="/2021/04/23/## Tinker 代码修复/" itemprop="url">
+                <a class="post-title-link" href="/2021/04/23/Tinker 代码修复/" itemprop="url">
                   Tinker dex 代码修复解析
                 </a>
               
@@ -950,9 +950,9 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2021/04/23/## Tinker 代码修复/#comments" itemprop="discussionUrl">
+                <a href="/2021/04/23/Tinker 代码修复/#comments" itemprop="discussionUrl">
                   <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2021/04/23/## Tinker 代码修复/" itemprop="commentCount"></span>
+                        data-disqus-identifier="2021/04/23/Tinker 代码修复/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -960,7 +960,7 @@
 
           
           
-             <span id="/2021/04/23/## Tinker 代码修复/" class="leancloud_visitors" data-flag-title="Tinker dex 代码修复解析">
+             <span id="/2021/04/23/Tinker 代码修复/" class="leancloud_visitors" data-flag-title="Tinker dex 代码修复解析">
                <span class="post-meta-divider">|</span>
                <span class="post-meta-item-icon">
                  <i class="fa fa-eye"></i>
@@ -1560,7 +1560,7 @@
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/01/04/ConnectInterceptor解析/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/01/04/RetryAndFollowUpInterceptor拦截器分析/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="DaQiang">
@@ -1582,8 +1582,8 @@
             
               
                 
-                <a class="post-title-link" href="/2021/01/04/ConnectInterceptor解析/" itemprop="url">
-                  OKHttp拦截器之ConnectInterceptor分析
+                <a class="post-title-link" href="/2021/01/04/RetryAndFollowUpInterceptor拦截器分析/" itemprop="url">
+                  OKHttp拦截器RetryAndFollowUpInterceptor分析
                 </a>
               
             
@@ -1618,9 +1618,9 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2021/01/04/ConnectInterceptor解析/#comments" itemprop="discussionUrl">
+                <a href="/2021/01/04/RetryAndFollowUpInterceptor拦截器分析/#comments" itemprop="discussionUrl">
                   <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2021/01/04/ConnectInterceptor解析/" itemprop="commentCount"></span>
+                        data-disqus-identifier="2021/01/04/RetryAndFollowUpInterceptor拦截器分析/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -1628,7 +1628,7 @@
 
           
           
-             <span id="/2021/01/04/ConnectInterceptor解析/" class="leancloud_visitors" data-flag-title="OKHttp拦截器之ConnectInterceptor分析">
+             <span id="/2021/01/04/RetryAndFollowUpInterceptor拦截器分析/" class="leancloud_visitors" data-flag-title="OKHttp拦截器RetryAndFollowUpInterceptor分析">
                <span class="post-meta-divider">|</span>
                <span class="post-meta-item-icon">
                  <i class="fa fa-eye"></i>
@@ -1659,10 +1659,12 @@
       
         
           
-            <p>ConnectInterceptor 拦截器的作用是同服务器建立连接并把连接传递给下一个拦截器。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">@Override public Response intercept(Chain chain) throws IOException &#123;</div><div class="line">  RealInterceptorChain realChain = (RealInterceptorChain) chain;</div><div class="line">  Request request = realChain.request();</div><div class="line">  StreamAllocation streamAllocation = realChain.streamAllocation();</div><div class="line"></div><div class="line">  // We need the network to satisfy this request. Possibly for validating a conditional GET.</div><div class="line">  boolean doExtensiveHealthChecks = !request.method().equals(&quot;GET&quot;);</div><div class="line">  HttpCodec httpCodec = streamAllocation.newStream(client, chain, doExtensiveHealthChecks);</div><div class="line">  RealConnection connection = streamAllocation.connection();</div><div class="line"></div><div class="line">  return realChain.proceed(request, streamAllocation, httpCodec, connection);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>看一下 streamAllocation.newStream -&gt; findHealthyConnection -&gt; findConnection 方法:</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div><div class="line">105</div><div class="line">106</div><div class="line">107</div><div class="line">108</div><div class="line">109</div><div class="line">110</div><div class="line">111</div><div class="line">112</div><div class="line">113</div><div class="line">114</div><div class="line">115</div></pre></td><td class="code"><pre><div class="line">/**</div><div class="line"> * Returns a connection to host a new stream. This prefers the existing connection if it exists,</div><div class="line"> * then the pool, finally building a new connection.</div><div class="line"> */</div><div class="line">	// 优先复用已存在的连接、其次从连接池中获取、最后创建新的连接</div><div class="line">private RealConnection findConnection(int connectTimeout, int readTimeout, int writeTimeout,</div><div class="line">    boolean connectionRetryEnabled) throws IOException &#123;</div><div class="line">  boolean foundPooledConnection = false;</div><div class="line">  RealConnection result = null;</div><div class="line">  Route selectedRoute = null;</div><div class="line">  Connection releasedConnection;</div><div class="line">  Socket toClose;</div><div class="line">  synchronized (connectionPool) &#123;</div><div class="line">    releasedConnection = this.connection;</div><div class="line">    toClose = releaseIfNoNewStreams();</div><div class="line"></div><div class="line">    //连接已存在</div><div class="line">    if (this.connection != null) &#123;</div><div class="line">      // We had an already-allocated connection and it&apos;s good.</div><div class="line">      result = this.connection;</div><div class="line">      releasedConnection = null;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    if (result == null) &#123;</div><div class="line">      // Attempt to get a connection from the pool.</div><div class="line">      // 从连接池中获取连接。注意最后一个参数是 null，代表从连接池中获取完全匹配的连接(host和nonhost完全一致)</div><div class="line">      Internal.instance.get(connectionPool, address, this, null);</div><div class="line">      if (connection != null) &#123;</div><div class="line">        foundPooledConnection = true;</div><div class="line">        result = connection;</div><div class="line">      &#125; else &#123;</div><div class="line">        selectedRoute = route;</div><div class="line">      &#125;</div><div class="line">    &#125;</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  if (result != null) &#123;</div><div class="line">    // If we found an already-allocated or pooled connection, we&apos;re done.</div><div class="line">    // 已经找到可用的连接，直接返回</div><div class="line">    return result;</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  // If we need a route selection, make one. This is a blocking operation.</div><div class="line">  boolean newRouteSelection = false;</div><div class="line">  if (selectedRoute == null &amp;&amp; (routeSelection == null || !routeSelection.hasNext())) &#123;</div><div class="line">    newRouteSelection = true;</div><div class="line">    routeSelection = routeSelector.next();</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  synchronized (connectionPool) &#123;</div><div class="line">    if (canceled) throw new IOException(&quot;Canceled&quot;);</div><div class="line"></div><div class="line">    if (newRouteSelection) &#123;</div><div class="line">      // Now that we have a set of IP addresses, make another attempt at getting a connection from</div><div class="line">      // the pool. This could match due to connection coalescing.</div><div class="line">      List&lt;Route&gt; routes = routeSelection.getAll();</div><div class="line">      for (int i = 0, size = routes.size(); i &lt; size; i++) &#123;</div><div class="line">        Route route = routes.get(i);</div><div class="line">        Internal.instance.get(connectionPool, address, this, route);</div><div class="line">        if (connection != null) &#123;</div><div class="line">          foundPooledConnection = true;</div><div class="line">          result = connection;</div><div class="line">          this.route = route;</div><div class="line">          break;</div><div class="line">        &#125;</div><div class="line">      &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    if (!foundPooledConnection) &#123;</div><div class="line">      if (selectedRoute == null) &#123;</div><div class="line">        selectedRoute = routeSelection.next();</div><div class="line">      &#125;</div><div class="line"></div><div class="line">      // Create a connection and assign it to this allocation immediately. This makes it possible</div><div class="line">      // for an asynchronous cancel() to interrupt the handshake we&apos;re about to do.</div><div class="line">      route = selectedRoute;</div><div class="line">      refusedStreamCount = 0;</div><div class="line">      result = new RealConnection(connectionPool, selectedRoute);</div><div class="line">      acquire(result, false);</div><div class="line">    &#125;</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  // If we found a pooled connection on the 2nd time around, we&apos;re done.</div><div class="line">  // 如果第二次在连接池中找到了连接，则直接返回</div><div class="line">  if (foundPooledConnection) &#123;</div><div class="line">    eventListener.connectionAcquired(call, result);</div><div class="line">    return result;</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  // Do TCP + TLS handshakes. This is a blocking operation.</div><div class="line">  // TCP 连接、TLS 握手</div><div class="line">  result.connect(</div><div class="line">      connectTimeout, readTimeout, writeTimeout, connectionRetryEnabled, call, eventListener);</div><div class="line">  routeDatabase().connected(result.route());</div><div class="line"></div><div class="line">  Socket socket = null;</div><div class="line">  synchronized (connectionPool) &#123;</div><div class="line">    reportedAcquired = true;</div><div class="line"></div><div class="line">    // Pool the connection.</div><div class="line">    // 把连接放进连接池</div><div class="line">    Internal.instance.put(connectionPool, result);</div><div class="line"></div><div class="line">    // If another multiplexed connection to the same address was created concurrently, then</div><div class="line">    // release this connection and acquire that one.</div><div class="line">    if (result.isMultiplexed()) &#123;</div><div class="line">      socket = Internal.instance.deduplicate(connectionPool, address, this);</div><div class="line">      result = connection;</div><div class="line">    &#125;</div><div class="line">  &#125;</div><div class="line">  closeQuietly(socket);</div><div class="line"></div><div class="line">  eventListener.connectionAcquired(call, result);</div><div class="line">  return result;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+            <p>RetryAndFollowUpInterceptor 拦截器为 OkHttp 拦截器集合中的第一个拦截器，它的作用顾名思义为网络请求失败时发起重试、重定向，下面看一下 intercept 方法的具体代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div></pre></td><td class="code"><pre><div class="line">Request request = chain.request();</div><div class="line"> RealInterceptorChain realChain = (RealInterceptorChain) chain;</div><div class="line"> Call call = realChain.call();</div><div class="line"> // 创建 streamAllocation</div><div class="line"> streamAllocation = new StreamAllocation(client.connectionPool(), createAddress(request.url()),</div><div class="line">     call, eventListener, callStackTrace);</div><div class="line"> int followUpCount = 0;//重定向的次数</div><div class="line"> Response priorResponse = null;</div><div class="line"> while (true) &#123;</div><div class="line"> 	//请求被取消</div><div class="line">   if (canceled) &#123;</div><div class="line">     streamAllocation.release();</div><div class="line">     throw new IOException(&quot;Canceled&quot;);</div><div class="line">   &#125;</div><div class="line">   Response response;</div><div class="line">   boolean releaseConnection = true;</div><div class="line">   try &#123;</div><div class="line">     response = realChain.proceed(request, streamAllocation, null, null);</div><div class="line">     releaseConnection = false;</div><div class="line">   &#125; catch (RouteException e) &#123;</div><div class="line">   	// 抛出的路由异常</div><div class="line">     // The attempt to connect via a route failed. The request will not have been sent.</div><div class="line">     // 判断是否能恢复</div><div class="line">     if (!recover(e.getLastConnectException(), false, request)) &#123;</div><div class="line">       throw e.getLastConnectException();</div><div class="line">     &#125;</div><div class="line">     releaseConnection = false;</div><div class="line">     continue;//继续重试</div><div class="line">   &#125; catch (IOException e) &#123;</div><div class="line">     // An attempt to communicate with a server failed. The request may have been sent.</div><div class="line">     boolean requestSendStarted = !(e instanceof ConnectionShutdownException);</div><div class="line">     // 判断是否能恢复</div><div class="line">     if (!recover(e, requestSendStarted, request)) throw e;</div><div class="line">     releaseConnection = false;</div><div class="line">     continue;//继续重试</div><div class="line">   &#125; finally &#123;</div><div class="line">     streamAllocation.release();</div><div class="line">   &#125;</div><div class="line"></div><div class="line">//重定向请求</div><div class="line">   Request followUp = followUpRequest(response);</div><div class="line">   if (followUp == null) &#123;</div><div class="line">   	//无需重定向，直接返回</div><div class="line">     return response;</div><div class="line">   &#125;</div><div class="line">   if (++followUpCount &gt; MAX_FOLLOW_UPS) &#123;</div><div class="line">    	//超过了重定向的最大次数</div><div class="line">     throw new ProtocolException(&quot;Too many follow-up requests: &quot; + followUpCount);</div><div class="line">   &#125;</div><div class="line">		if (followUp.body() instanceof UnrepeatableRequestBody) &#123;</div><div class="line">     streamAllocation.release();</div><div class="line">     throw new HttpRetryException(&quot;Cannot retry streamed HTTP body&quot;, response.code());</div><div class="line">   &#125;</div><div class="line"></div><div class="line">   if (!sameConnection(response, followUp.url())) &#123;</div><div class="line">   	// 如果连接的地址发生变化则创建一个新的 streamAllocation</div><div class="line">     streamAllocation.release();</div><div class="line">     streamAllocation = new StreamAllocation(client.connectionPool(),</div><div class="line">         createAddress(followUp.url()), call, eventListener, callStackTrace);</div><div class="line">   &#125; else if (streamAllocation.codec() != null) &#123;</div><div class="line">     throw new IllegalStateException(&quot;Closing the body of &quot; + response</div><div class="line">         + &quot; didn&apos;t close its backing stream. Bad interceptor?&quot;);</div><div class="line">   &#125;</div><div class="line">   request = followUp;</div><div class="line">   priorResponse = response;</div><div class="line"> &#125;</div></pre></td></tr></table></figure>
+<p>大致流程为: 在一个循环里发起请求，如果请求失败则判断是否能发起重试，如果允许重试则继续发起请求。请求失败后判断是否重试的逻辑在 recover 方法里:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line">private boolean recover(IOException e, boolean requestSendStarted, Request userRequest) &#123;</div><div class="line">  streamAllocation.streamFailed(e);</div><div class="line"></div><div class="line">  // The application layer has forbidden retries.</div><div class="line">  // 调用者是否配置允许重试，如果不允许的话直接返回 false</div><div class="line">  if (!client.retryOnConnectionFailure()) return false;</div><div class="line"></div><div class="line">  // We can&apos;t send the request body again.</div><div class="line">  // 如果已经发出请求且请求体不可缓存则返回 false</div><div class="line">  if (requestSendStarted &amp;&amp; userRequest.body() instanceof UnrepeatableRequestBody) return false;</div><div class="line"></div><div class="line">  // This exception is fatal.</div><div class="line">  // 根据异常的类型判断是否能重试</div><div class="line">  if (!isRecoverable(e, requestSendStarted)) return false;</div><div class="line"></div><div class="line">  // No more routes to attempt.</div><div class="line">  // 没有路由地址可用</div><div class="line">  if (!streamAllocation.hasMoreRoutes()) return false;</div><div class="line"></div><div class="line">  // For failure recovery, use the same route selector with a new connection.</div><div class="line">  return true;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>如果成功返回了 response 则根据 responseCode 判断是否需要发起重定向请求(当 响应code的值为 3xx 重定向、401、407、408 时)，具体要看一下 followUpRequest 方法:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div><div class="line">105</div><div class="line">106</div><div class="line">107</div><div class="line">108</div><div class="line">109</div><div class="line">110</div></pre></td><td class="code"><pre><div class="line">private Request followUpRequest(Response userResponse) throws IOException &#123;</div><div class="line">  if (userResponse == null) throw new IllegalStateException();</div><div class="line">  Connection connection = streamAllocation.connection();</div><div class="line">  Route route = connection != null</div><div class="line">      ? connection.route()</div><div class="line">      : null;</div><div class="line">  int responseCode = userResponse.code();</div><div class="line"></div><div class="line">  final String method = userResponse.request().method();</div><div class="line">  switch (responseCode) &#123;</div><div class="line">  	// HTTP Status-Code 407 缺乏位于浏览器与可以访问所请求资源的服务器之间的代理服务器（proxy server ）要求的身份验证凭证</div><div class="line">    case HTTP_PROXY_AUTH:</div><div class="line">      Proxy selectedProxy = route != null</div><div class="line">          ? route.proxy()</div><div class="line">          : client.proxy();</div><div class="line">      if (selectedProxy.type() != Proxy.Type.HTTP) &#123;</div><div class="line">        throw new ProtocolException(&quot;Received HTTP_PROXY_AUTH (407) code while not using proxy&quot;);</div><div class="line">      &#125;</div><div class="line">      return client.proxyAuthenticator().authenticate(route, userResponse);</div><div class="line"></div><div class="line">	// HTTP Status-Code 401: 缺乏目标资源要求的身份验证凭证.</div><div class="line">    case HTTP_UNAUTHORIZED:</div><div class="line">      return client.authenticator().authenticate(route, userResponse);</div><div class="line"></div><div class="line">	// 临时重定向响应状态码，表示请求的资源暂时地被移动到了响应的 Location 首部所指向的 URL 上</div><div class="line">    case HTTP_PERM_REDIRECT:</div><div class="line">    // 308 Permanent Redirect（永久重定向）是表示重定向的响应状态码，说明请求的资源已经被永久的移动到了由 Location 首部指定的 URL 上</div><div class="line">    case HTTP_TEMP_REDIRECT:</div><div class="line">      // &quot;If the 307 or 308 status code is received in response to a request other than GET</div><div class="line">      // or HEAD, the user agent MUST NOT automatically redirect the request&quot;</div><div class="line">      //对于 307 308，如果请求方法不是 GET 或者 HEAD,则不能发起重定向.可参考文档https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html</div><div class="line">      if (!method.equals(&quot;GET&quot;) &amp;&amp; !method.equals(&quot;HEAD&quot;)) &#123;</div><div class="line">        return null;</div><div class="line">      &#125;</div><div class="line">      // fall-through</div><div class="line">    case HTTP_MULT_CHOICE:</div><div class="line">    case HTTP_MOVED_PERM:</div><div class="line">    case HTTP_MOVED_TEMP:</div><div class="line">    case HTTP_SEE_OTHER:</div><div class="line">      // Does the client allow redirects?</div><div class="line">      // 客户端是否允许重定向？</div><div class="line">      if (!client.followRedirects()) return null;</div><div class="line">		// 获取重定向的地址</div><div class="line">      String location = userResponse.header(&quot;Location&quot;);</div><div class="line">      if (location == null) return null;</div><div class="line">      HttpUrl url = userResponse.request().url().resolve(location);</div><div class="line"></div><div class="line">      // Don&apos;t follow redirects to unsupported protocols.</div><div class="line">      if (url == null) return null;</div><div class="line"></div><div class="line">      // If configured, don&apos;t follow redirects between SSL and non-SSL.</div><div class="line">      // 如果禁止 SSL 和非 SSL 间进行重定向，则返回 null</div><div class="line">      boolean sameScheme = url.scheme().equals(userResponse.request().url().scheme());</div><div class="line">      if (!sameScheme &amp;&amp; !client.followSslRedirects()) return null;</div><div class="line"></div><div class="line">      // Most redirects don&apos;t include a request body.</div><div class="line">      // 大多数请求体不包含请求体</div><div class="line">      Request.Builder requestBuilder = userResponse.request().newBuilder();</div><div class="line">      if (HttpMethod.permitsRequestBody(method)) &#123;</div><div class="line">        final boolean maintainBody = HttpMethod.redirectsWithBody(method);</div><div class="line">        if (HttpMethod.redirectsToGet(method)) &#123;</div><div class="line">          requestBuilder.method(&quot;GET&quot;, null);</div><div class="line">        &#125; else &#123;</div><div class="line">          RequestBody requestBody = maintainBody ? userResponse.request().body() : null;</div><div class="line">          requestBuilder.method(method, requestBody);</div><div class="line">        &#125;</div><div class="line">        //如果不包含请求体则移除相应 header</div><div class="line">        if (!maintainBody) &#123;</div><div class="line">          requestBuilder.removeHeader(&quot;Transfer-Encoding&quot;);</div><div class="line">          requestBuilder.removeHeader(&quot;Content-Length&quot;);</div><div class="line">          requestBuilder.removeHeader(&quot;Content-Type&quot;);</div><div class="line">        &#125;</div><div class="line">      &#125;</div><div class="line"></div><div class="line">      // When redirecting across hosts, drop all authentication headers. This</div><div class="line">      // is potentially annoying to the application layer since they have no</div><div class="line">      // way to retain them.</div><div class="line">      // 如果不是相同的连接，则移除掉 Authorization</div><div class="line">      if (!sameConnection(userResponse, url)) &#123;</div><div class="line">        requestBuilder.removeHeader(&quot;Authorization&quot;);</div><div class="line">      &#125;</div><div class="line"></div><div class="line">      return requestBuilder.url(url).build();</div><div class="line"></div><div class="line">    case HTTP_CLIENT_TIMEOUT:</div><div class="line">      // 408&apos;s are rare in practice, but some servers like HAProxy use this response code. The</div><div class="line">      // spec says that we may repeat the request without modifications. Modern browsers also</div><div class="line">      // repeat the request (even non-idempotent ones.)</div><div class="line">      // 响应状态码 408 Request Timeout 表示服务器想要将没有在使用的连接关闭。一些服务器会在空闲连接上发送此信息，即便是在客户端没有发送任何请求的情况下</div><div class="line">      if (!client.retryOnConnectionFailure()) &#123;</div><div class="line">        // The application layer has directed us not to retry the request.</div><div class="line">        return null;</div><div class="line">      &#125;</div><div class="line"></div><div class="line">      if (userResponse.request().body() instanceof UnrepeatableRequestBody) &#123;</div><div class="line">        return null;</div><div class="line">      &#125;</div><div class="line"></div><div class="line">      if (userResponse.priorResponse() != null</div><div class="line">          &amp;&amp; userResponse.priorResponse().code() == HTTP_CLIENT_TIMEOUT) &#123;</div><div class="line">        // We attempted to retry and got another timeout. Give up.</div><div class="line">        return null;</div><div class="line">      &#125;</div><div class="line">		// 重新发起原始请求</div><div class="line">      return userResponse.request();</div><div class="line"></div><div class="line">    default:</div><div class="line">      return null;</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 
           
         
@@ -1706,7 +1708,7 @@
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/01/04/BridgeInterceptor分析/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2021/01/04/OkHttp整体流程图/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="DaQiang">
@@ -1728,8 +1730,8 @@
             
               
                 
-                <a class="post-title-link" href="/2021/01/04/BridgeInterceptor分析/" itemprop="url">
-                  OKHttp拦截器BridgeInterceptor、CacheInterceptor分析
+                <a class="post-title-link" href="/2021/01/04/OkHttp整体流程图/" itemprop="url">
+                  OKHttp整体流程分析
                 </a>
               
             
@@ -1764,9 +1766,9 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2021/01/04/BridgeInterceptor分析/#comments" itemprop="discussionUrl">
+                <a href="/2021/01/04/OkHttp整体流程图/#comments" itemprop="discussionUrl">
                   <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="2021/01/04/BridgeInterceptor分析/" itemprop="commentCount"></span>
+                        data-disqus-identifier="2021/01/04/OkHttp整体流程图/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -1774,7 +1776,7 @@
 
           
           
-             <span id="/2021/01/04/BridgeInterceptor分析/" class="leancloud_visitors" data-flag-title="OKHttp拦截器BridgeInterceptor、CacheInterceptor分析">
+             <span id="/2021/01/04/OkHttp整体流程图/" class="leancloud_visitors" data-flag-title="OKHttp整体流程分析">
                <span class="post-meta-divider">|</span>
                <span class="post-meta-item-icon">
                  <i class="fa fa-eye"></i>
@@ -1805,13 +1807,21 @@
       
         
           
-            <p>BridgeInterceptor 顾名思义起到了桥梁的作用，将用户的请求转换为发往服务器的请求、将服务器的响应转换为对用户友好的响应。例如把用户设置的 contentType 值设置到请求头 Content-Type 字段中。</p>
-<p>发往服务器的请求如果用户未设置首部，BridgeInterceptor 会为某些首部设置默认值，如 Content-Length、Host、Connection、Accept-Encoding。</p>
-<p>如果网络请求返回的报文是 gzip 压缩的，则在解压报文体后返回给用户</p>
-<p>CacheInterceptor 拦截器:</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div></pre></td><td class="code"><pre><div class="line">@Override public Response intercept(Chain chain) throws IOException &#123;</div><div class="line">	//读取缓存</div><div class="line">  Response cacheCandidate = cache != null</div><div class="line">      ? cache.get(chain.request())</div><div class="line">      : null;</div><div class="line"></div><div class="line">  long now = System.currentTimeMillis();</div><div class="line"></div><div class="line">	//获取缓存策略(缓存策略分为以下几种:只使用网络请求、只使用缓存、同时使用网络请求和缓存、同时禁用网络和缓存)</div><div class="line">  CacheStrategy strategy = new CacheStrategy.Factory(now, chain.request(), cacheCandidate).get();</div><div class="line">  Request networkRequest = strategy.networkRequest;</div><div class="line">  Response cacheResponse = strategy.cacheResponse;</div><div class="line"></div><div class="line">  // If we&apos;re forbidden from using the network and the cache is insufficient, fail.</div><div class="line">  //如果禁用了网络、缓存无效，则构造504的响应</div><div class="line">  if (networkRequest == null &amp;&amp; cacheResponse == null) &#123;</div><div class="line">    return new Response.Builder()</div><div class="line">        .request(chain.request())</div><div class="line">        .protocol(Protocol.HTTP_1_1)</div><div class="line">        .code(504)</div><div class="line">        .message(&quot;Unsatisfiable Request (only-if-cached)&quot;)</div><div class="line">        .body(Util.EMPTY_RESPONSE)</div><div class="line">        .sentRequestAtMillis(-1L)</div><div class="line">        .receivedResponseAtMillis(System.currentTimeMillis())</div><div class="line">        .build();</div><div class="line">  &#125;</div><div class="line"></div><div class="line">	// 如果不需要发起网络请求，返回缓存</div><div class="line">  // If we don&apos;t need the network, we&apos;re done.</div><div class="line">  if (networkRequest == null) &#123;</div><div class="line">    return cacheResponse.newBuilder()</div><div class="line">        .cacheResponse(stripBody(cacheResponse))</div><div class="line">        .build();</div><div class="line">  &#125;</div><div class="line"></div><div class="line">	//发起网络请求</div><div class="line">  Response networkResponse = null;</div><div class="line">  try &#123;</div><div class="line">    networkResponse = chain.proceed(networkRequest);</div><div class="line">  &#125; finally &#123;</div><div class="line">    // If we&apos;re crashing on I/O or otherwise, don&apos;t leak the cache body.</div><div class="line">    if (networkResponse == null &amp;&amp; cacheCandidate != null) &#123;</div><div class="line">      closeQuietly(cacheCandidate.body());</div><div class="line">    &#125;</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  // If we have a cache response too, then we&apos;re doing a conditional get.</div><div class="line">  if (cacheResponse != null) &#123;</div><div class="line">    if (networkResponse.code() == HTTP_NOT_MODIFIED) &#123;</div><div class="line">    	//304 未改变。可直接使用缓存</div><div class="line">      Response response = cacheResponse.newBuilder()</div><div class="line">          .headers(combine(cacheResponse.headers(), networkResponse.headers()))</div><div class="line">          .sentRequestAtMillis(networkResponse.sentRequestAtMillis())</div><div class="line">          .receivedResponseAtMillis(networkResponse.receivedResponseAtMillis())</div><div class="line">          .cacheResponse(stripBody(cacheResponse))</div><div class="line">          .networkResponse(stripBody(networkResponse))</div><div class="line">          .build();</div><div class="line">      networkResponse.body().close();</div><div class="line"></div><div class="line">      // Update the cache after combining headers but before stripping the</div><div class="line">      // Content-Encoding header (as performed by initContentStream()).</div><div class="line">      cache.trackConditionalCacheHit();</div><div class="line">      cache.update(cacheResponse, response);</div><div class="line">      return response;</div><div class="line">    &#125; else &#123;</div><div class="line">      closeQuietly(cacheResponse.body());</div><div class="line">    &#125;</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  Response response = networkResponse.newBuilder()</div><div class="line">      .cacheResponse(stripBody(cacheResponse))</div><div class="line">      .networkResponse(stripBody(networkResponse))</div><div class="line">      .build();</div><div class="line"></div><div class="line">  if (cache != null) &#123;</div><div class="line">    if (HttpHeaders.hasBody(response) &amp;&amp; CacheStrategy.isCacheable(response, networkRequest)) &#123;</div><div class="line">      // Offer this request to the cache.</div><div class="line">      // 把请求结果放入缓存</div><div class="line">      CacheRequest cacheRequest = cache.put(response);</div><div class="line">      return cacheWritingResponse(cacheRequest, response);</div><div class="line">    &#125;</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  return response;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>详细看一下获取缓存策略，代码在 CacheStrategy 类中:</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div></pre></td><td class="code"><pre><div class="line">public CacheStrategy get() &#123;</div><div class="line">  CacheStrategy candidate = getCandidate();</div><div class="line"></div><div class="line">  if (candidate.networkRequest != null &amp;&amp; request.cacheControl().onlyIfCached()) &#123;</div><div class="line">  	//禁用网络和缓存</div><div class="line">    // We&apos;re forbidden from using the network and the cache is insufficient.</div><div class="line">    return new CacheStrategy(null, null);</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  return candidate;</div><div class="line">&#125;</div><div class="line"></div><div class="line">/** Returns a strategy to use assuming the request can use the network. */</div><div class="line">private CacheStrategy getCandidate() &#123;</div><div class="line">  // No cached response.</div><div class="line">  // 本地没有缓存则只使用网络</div><div class="line">  if (cacheResponse == null) &#123;</div><div class="line">    return new CacheStrategy(request, null);</div><div class="line">  &#125;</div><div class="line"></div><div class="line">	// 如果请求是 https 类型但是缓存缺少握手信息，则只使用网络</div><div class="line">  // Drop the cached response if it&apos;s missing a required handshake.</div><div class="line">  if (request.isHttps() &amp;&amp; cacheResponse.handshake() == null) &#123;</div><div class="line">    return new CacheStrategy(request, null);</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  // If this response shouldn&apos;t have been stored, it should never be used</div><div class="line">  // as a response source. This check should be redundant as long as the</div><div class="line">  // persistence store is well-behaved and the rules are constant.</div><div class="line">  // 如果缓存不可用，则只使用网络</div><div class="line">  if (!isCacheable(cacheResponse, request)) &#123;</div><div class="line">    return new CacheStrategy(request, null);</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  CacheControl requestCaching = request.cacheControl();</div><div class="line">  if (requestCaching.noCache() || hasConditions(request)) &#123;</div><div class="line">  // 如果请求头不允许缓存，则只使用网络</div><div class="line">    return new CacheStrategy(request, null);</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  CacheControl responseCaching = cacheResponse.cacheControl();</div><div class="line">  if (responseCaching.immutable()) &#123;</div><div class="line">  	//	响应正文不会随时间而改变,则只使用缓存</div><div class="line">    return new CacheStrategy(null, cacheResponse);</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  long ageMillis = cacheResponseAge();</div><div class="line">  long freshMillis = computeFreshnessLifetime();</div><div class="line"></div><div class="line">  if (requestCaching.maxAgeSeconds() != -1) &#123;</div><div class="line">    freshMillis = Math.min(freshMillis, SECONDS.toMillis(requestCaching.maxAgeSeconds()));</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  long minFreshMillis = 0;</div><div class="line">  if (requestCaching.minFreshSeconds() != -1) &#123;</div><div class="line">    minFreshMillis = SECONDS.toMillis(requestCaching.minFreshSeconds());</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  long maxStaleMillis = 0;</div><div class="line">  if (!responseCaching.mustRevalidate() &amp;&amp; requestCaching.maxStaleSeconds() != -1) &#123;</div><div class="line">    maxStaleMillis = SECONDS.toMillis(requestCaching.maxStaleSeconds());</div><div class="line">  &#125;</div><div class="line"></div><div class="line">	// 缓存未过期，则只使用缓存</div><div class="line">  if (!responseCaching.noCache() &amp;&amp; ageMillis + minFreshMillis &lt; freshMillis + maxStaleMillis) &#123;</div><div class="line">    Response.Builder builder = cacheResponse.newBuilder();</div><div class="line">    if (ageMillis + minFreshMillis &gt;= freshMillis) &#123;</div><div class="line">      builder.addHeader(&quot;Warning&quot;, &quot;110 HttpURLConnection \&quot;Response is stale\&quot;&quot;);</div><div class="line">    &#125;</div><div class="line">    long oneDayMillis = 24 * 60 * 60 * 1000L;</div><div class="line">    if (ageMillis &gt; oneDayMillis &amp;&amp; isFreshnessLifetimeHeuristic()) &#123;</div><div class="line">      builder.addHeader(&quot;Warning&quot;, &quot;113 HttpURLConnection \&quot;Heuristic expiration\&quot;&quot;);</div><div class="line">    &#125;</div><div class="line">    return new CacheStrategy(null, builder.build());</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  // Find a condition to add to the request. If the condition is satisfied, the response body</div><div class="line">  // will not be transmitted.</div><div class="line">  // 构建条件式请求首部</div><div class="line">  String conditionName;</div><div class="line">  String conditionValue;</div><div class="line">  //当与 If-Modified-Since 一同使用的时候，If-None-Match 优先级更高（假如服务器支持的话)</div><div class="line">  if (etag != null) &#123;</div><div class="line">    conditionName = &quot;If-None-Match&quot;;</div><div class="line">    conditionValue = etag;</div><div class="line">  &#125; else if (lastModified != null) &#123;</div><div class="line">    conditionName = &quot;If-Modified-Since&quot;;</div><div class="line">    conditionValue = lastModifiedString;</div><div class="line">  &#125; else if (servedDate != null) &#123;</div><div class="line">    conditionName = &quot;If-Modified-Since&quot;;</div><div class="line">    conditionValue = servedDateString;</div><div class="line">  &#125; else &#123;</div><div class="line">    return new CacheStrategy(request, null); // No condition! Make a regular request.</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  Headers.Builder conditionalRequestHeaders = request.headers().newBuilder();</div><div class="line">  Internal.instance.addLenient(conditionalRequestHeaders, conditionName, conditionValue);</div><div class="line"></div><div class="line">  Request conditionalRequest = request.newBuilder()</div><div class="line">      .headers(conditionalRequestHeaders.build())</div><div class="line">      .build();</div><div class="line">  // 同时使用网络和缓存</div><div class="line">  return new CacheStrategy(conditionalRequest, cacheResponse);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+            <p>OkHttp 的使用如下:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">OkHttpClient client = new OkHttpClient();</div><div class="line"></div><div class="line">String run(String url) throws IOException &#123;</div><div class="line">  Request request = new Request.Builder()</div><div class="line">      .url(url)</div><div class="line">      .build();</div><div class="line"></div><div class="line">  try (Response response = client.newCall(request).execute()) &#123;</div><div class="line">    return response.body().string();</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>newCall(request) 方法会返回 Call 对象，Call 接口类只有一个实现类 RealCall,看一下 RealCall 的execute() 方法。</p>
+<p>RealCall 类的 execute() 方法调用了 getResponseWithInterceptorChain() 获取响应结果,getResponseWithInterceptorChain 方法如下:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line">// Build a full stack of interceptors.</div><div class="line">	// 构建拦截器集合</div><div class="line">  List&lt;Interceptor&gt; interceptors = new ArrayList&lt;&gt;();</div><div class="line">  interceptors.addAll(client.interceptors());</div><div class="line">  interceptors.add(retryAndFollowUpInterceptor);</div><div class="line">  interceptors.add(new BridgeInterceptor(client.cookieJar()));</div><div class="line">  interceptors.add(new CacheInterceptor(client.internalCache()));</div><div class="line">  interceptors.add(new ConnectInterceptor(client));</div><div class="line">  if (!forWebSocket) &#123;</div><div class="line">    interceptors.addAll(client.networkInterceptors());</div><div class="line">  &#125;</div><div class="line">  interceptors.add(new CallServerInterceptor(forWebSocket));</div><div class="line"></div><div class="line">  Interceptor.Chain chain = new RealInterceptorChain(interceptors, null, null, null, 0,</div><div class="line">      originalRequest, this, eventListener, client.connectTimeoutMillis(),</div><div class="line">      client.readTimeoutMillis(), client.writeTimeoutMillis());</div><div class="line"></div><div class="line">  return chain.proceed(originalRequest);</div></pre></td></tr></table></figure>
+<p>采用类似职责链模式的方法，依次执行到各个拦截器的 intercept 方法。客户端最上层的请求数据依次经过各个拦截器处理后发给服务器，服务器的响应数据依次经过各个拦截器后返回给客户端，类似 TCP/IP 分层协议中对数据的处理。代码大致流程如下：</p>
+<p>respone = Chain0.proceed</p>
+<p>interceptor0.intercept(chain1) Chain1.proceed</p>
+<p> interceptor1.intercept(chain2) Chain2.proceed</p>
+<p> interceptor2.intercept(chain3)</p>
+<p>…</p>
+<p>整体流程图如下：</p>
+<p><img src="https://github.com/2227056071/imges/blob/master/intercept.png" alt="流程图"></p>
+<p>OkHttp 支持自定义拦截器，自定义拦截器类型分为两种:  Application interceptor 和 Network Interceptor。应用拦截器只会被执行一次，网络拦截器可能会被执行多次(由于重定向和失败重试) 。</p>
+<p>后面会依次分析各个拦截器的逻辑。OkHttp 本质是个 http 客户端。关于 http 内容可参考 rfc 文档、MDN web docs。</p>
 
           
         
